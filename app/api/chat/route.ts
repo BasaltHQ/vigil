@@ -50,6 +50,8 @@ function loadAgentInstructions(agentName: string, swarmId: string): string {
 // Patch the broken serialization before it reaches Azure by using a custom fetch
 import { createAzure } from '@ai-sdk/azure';
 const patchedAzure = createAzure({
+  resourceName: process.env.AZURE_RESOURCE_NAME,
+  apiKey: process.env.AZURE_API_KEY,
   fetch: async (url, init) => {
     if (init?.body) {
       try {
@@ -304,7 +306,9 @@ export async function POST(req: Request) {
       }
     });
 
-    return response.toUIMessageStreamResponse();
+    const streamResponse = response.toUIMessageStreamResponse();
+    streamResponse.headers.set('X-Accel-Buffering', 'no');
+    return streamResponse;
 
   } catch (error: any) {
     console.error("Chat API Error:", error);

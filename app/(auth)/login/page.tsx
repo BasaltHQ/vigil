@@ -30,29 +30,29 @@ export default function LoginPage(props: {
 
   // Automatic onboarding if profiles contain an email
   useEffect(() => {
-    if (isBackendLoggedIn && account && profiles && profiles.length > 0) {
-      // Thirdweb might return multiple profiles (e.g., 'email' type without name, and 'google' type with name)
-      // We prioritize finding a profile that explicitly contains a name
-      const emailProfile = profiles.find((p: any) => p.details?.email && p.details?.name) || profiles.find((p: any) => p.details?.email);
-      if (emailProfile && emailProfile.details) {
-        const details = emailProfile.details as any;
-        // Automatically submit onboarding
-        fetch("/api/auth/onboarding", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: details.email,
-            displayName: details.name || details.givenName || details.email
-          })
-        }).then(() => {
-          router.push("/chat");
-        }).catch(() => {
-          router.push("/chat");
-        });
-      } else {
-        // If no email profile found, just proceed
-        router.push("/chat");
+    if (isBackendLoggedIn && account && profiles !== undefined) {
+      if (profiles.length > 0) {
+        // Thirdweb might return multiple profiles (e.g., 'email' type without name, and 'google' type with name)
+        // We prioritize finding a profile that explicitly contains a name
+        const emailProfile = profiles.find((p: any) => p.details?.email && p.details?.name) || profiles.find((p: any) => p.details?.email);
+        if (emailProfile && emailProfile.details) {
+          const details = emailProfile.details as any;
+          // Automatically submit onboarding
+          fetch("/api/auth/onboarding", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: details.email,
+              displayName: details.name || details.givenName || details.email
+            })
+          }).finally(() => {
+            router.push("/chat");
+          });
+          return;
+        }
       }
+      // If no profiles exist, or no email profile was found, proceed immediately
+      router.push("/chat");
     }
   }, [isBackendLoggedIn, account, profiles, router]);
 
