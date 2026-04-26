@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { BG_BASE64, LOGO_BASE64 } from './og-assets';
 
 export const runtime = 'edge';
 
@@ -26,9 +27,9 @@ export async function GET(request: Request) {
     loadFont(700),
   ]);
 
-  const origin = new URL(request.url).origin;
-  const bgUrl = `${origin}/images/og-bg.png`;
-  const logoUrl = `${origin}/Vigil.png`;
+  // Use inlined base64 assets — edge runtime can't fetch from its own origin
+  const bgUrl = BG_BASE64;
+  const logoUrl = LOGO_BASE64;
 
   return new ImageResponse(
     (
