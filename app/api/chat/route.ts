@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { streamText, convertToModelMessages, stepCountIs, generateText, tool } from 'ai';
+import { streamText, convertToModelMessages, stepCountIs, generateText, tool, zodSchema } from 'ai';
 import { z } from 'zod';
 import { azure } from '@ai-sdk/azure';
 import { prisma } from '@/lib/db';
@@ -11,15 +11,19 @@ import { thirdwebAuth } from '@/lib/auth';
 
 export const maxDuration = 300;
 
-// Pre-compute correct JSON schemas from Zod (workaround for @ai-sdk/azure@3.0.54 serialization bug)
+// Pre-compute correct JSON schemas from Zod (workaround for @ai-sdk/azure serialization bug)
+// AI SDK v6 tool().parameters is a raw Zod schema — use zodSchema() to get proper JSON Schema
 const correctSchemas: Record<string, any> = {};
 for (const [name, t] of Object.entries(allSpecialistTools) as [string, any][]) {
-  if (t.parameters?.toJSONSchema) {
-    const schema = t.parameters.toJSONSchema();
-    delete schema.$schema; // Azure doesn't need this metadata
-    correctSchemas[name] = schema;
-  } else if (t.parameters?.jsonSchema) {
-    correctSchemas[name] = t.parameters.jsonSchema;
+  if (t.parameters) {
+    try {
+      const wrapped = zodSchema(t.parameters);
+      const schema: any = { ...wrapped.jsonSchema };
+      delete schema.$schema;
+      correctSchemas[name] = schema;
+    } catch (e) {
+      console.warn(`[Vigil] Failed to pre-compute schema for tool '${name}':`, e);
+    }
   }
 }
 console.log(`[Vigil] Pre-computed ${Object.keys(correctSchemas).length} tool schemas`);
