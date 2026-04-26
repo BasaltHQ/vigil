@@ -26,7 +26,7 @@ export async function GET() {
 
     const mockAgents: any[] = [];
     
-    swarms.forEach(swarm => {
+    swarms.forEach((swarm: any) => {
       const swarmAgents = (Array.isArray(swarm.agents) ? swarm.agents : []) as string[];
       swarmAgents.forEach((agentName) => {
         mockAgents.push({
