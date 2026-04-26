@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Swarm {
+  id          String         @id
+  name        String
+  description String?
+  icon        String         @default("⚖️")
+  color       String         @default("#4A5568")
+  agents      Json           @default("[]")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  conversations Conversation[]
+
+  @@map("swarms")
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  userId    String    @default("default_user") @map("user_id")
+  swarmId   String?   @map("swarm_id")
+  title     String?
+  metadata  Json      @default("{}")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+  messages  Message[]
+  swarm     Swarm?    @relation(fields: [swarmId], references: [id])
+
+  @@index([userId])
+  @@index([updatedAt(sort: Desc)])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String       @map("conversation_id")
+  role           String
+  content        String
+  agentName      String?      @map("agent_name")
+  toolCalls      Json?        @map("tool_calls")
+  metadata       Json         @default("{}")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model Profile {
+  id                 String       @id // Supabase auth.users.id / Thirdweb address
+  email              String?      @unique
+  displayName        String?      @map("display_name")
+  onboardingComplete Boolean      @default(false) @map("onboarding_complete")
+  role               String       @default("client") // "admin" | "client"
+  status             String       @default("pending") // "active" | "pending" | "suspended"
+  companyUrl         String?      @map("company_url")
+  companyName     String?      @map("company_name")
+  brandAssets     Json?        @map("brand_assets")
+  brandParameters Json?        @map("brand_parameters")
+  baseTemplate    String?      @map("base_template")
+  docIdTemplate   String       @default("VARUNA-[YYYY]-[####]") @map("doc_id_template")
+  docIdCounter    Int          @default(0) @map("doc_id_counter")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at")
+  tokenUsage  TokenUsage[]
+
+  @@map("profiles")
+}
+
+model TokenUsage {
+  id               String       @id @default(uuid())
+  userId           String       @map("user_id")
+  conversationId   String?      @map("conversation_id")
+  model            String       @default("gpt-5.4-mini")
+  promptTokens     Int          @default(0) @map("prompt_tokens")
+  completionTokens Int          @default(0) @map("completion_tokens")
+  totalTokens      Int          @default(0) @map("total_tokens")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  profile          Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("token_usage")
+}
+
+model Document {
+  id             String   @id @default(uuid())
+  displayId      String?  @unique @map("display_id")
+  userId         String   @map("user_id")
+  conversationId String?  @map("conversation_id")
+  title          String
+  documentType   String   @default("general") @map("document_type") // contract, securities, governance, memo, etc.
+  format         String   @default("pdf") // pdf, md, docx
+  filePath       String   @map("file_path") // S3 key or local path
+  fileSize       Int      @default(0) @map("file_size")
+  createdBy      String?  @map("created_by") // agent name
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("documents")
+}

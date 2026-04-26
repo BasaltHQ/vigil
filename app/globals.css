@@ -1,26 +1,313 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Noir Glassmorphism palette */
+    --glass-bg: rgba(20, 20, 20, 0.4);
+    --glass-bg-hover: rgba(30, 30, 30, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-hover: rgba(255, 255, 255, 0.2);
+
+    /* Noir theme colors */
+    --bg-primary: #050505;
+    --bg-secondary: #0a0a0a;
+    --bg-tertiary: #111111;
+
+    /* Text colors - High Contrast */
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    /* zinc-400 */
+    --text-tertiary: #52525b;
+    /* zinc-600 */
+    --text-micro: #3f3f46;
+    /* zinc-700 */
+
+    /* Accent colors - Noir & Vigil Red */
+    --accent-red-primary: #cc0000;
+    --accent-red-dark: #7f0000;
+    --accent-red-light: #ff3333;
+    --accent-silver: #d4d4d8;
+    /* zinc-300 */
+
+    /* Glow effects - Vigil Red */
+    --glow-red: 0 0 15px rgba(204, 0, 0, 0.4);
+    --glow-red-intense: 0 0 25px rgba(204, 0, 0, 0.6);
+    --glow-silver: 0 0 15px rgba(200, 200, 200, 0.2);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  body {
+    background: var(--bg-primary);
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(40, 40, 40, 0.2) 0%, transparent 60%),
+      radial-gradient(circle at 100% 50%, rgba(20, 20, 20, 0.3) 0%, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: var(--text-primary);
+  }
+
+  /* Microtext base styles */
+  .microtext {
+    @apply text-[10px] leading-tight tracking-wider uppercase;
+    color: var(--text-micro);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+
+  .microtext-label {
+    @apply text-[9px] leading-none tracking-widest uppercase;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    letter-spacing: 0.15em;
+  }
+}
+
+@layer components {
+
+  /* Glassmorphism panels */
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    @apply rounded-lg;
+  }
+
+  .glass-panel-hover {
+    @apply transition-all duration-300;
+  }
+
+  .glass-panel-hover:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Glass button styles */
+  .glass-button {
+    @apply px-4 py-2 rounded-md text-sm font-medium transition-all duration-300;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+  }
+
+  .glass-button:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-button-primary {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+  }
+
+  .glass-button-primary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+  }
+
+  /* Input styles */
+  .glass-input {
+    @apply w-full px-3 py-2 text-sm rounded-md transition-all duration-300;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+  }
+
+  .glass-input:focus {
+    @apply outline-none;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 0 15px rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-input::placeholder {
+    color: var(--text-tertiary);
+    font-size: 12px;
+  }
+
+  /* Scrollbar styling — Vigil Red */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 0, 0, 0.5) rgba(10, 0, 0, 0.3);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(10, 0, 0, 0.3);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(127, 0, 0, 0.5);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(204, 0, 0, 0.7);
+  }
+
+  /* Glow text effects */
+  .glow-text-red {
+    color: var(--text-primary);
+    text-shadow: 0 0 10px rgba(204, 0, 0, 0.5);
+  }
+
+  .glow-text-silver {
+    color: var(--text-secondary);
+    text-shadow: 0 0 10px rgba(200, 200, 200, 0.3);
+  }
+
+  /* Microtext grid layout */
+  .micro-grid {
+    display: grid;
+    gap: 1px;
+    background: var(--glass-border);
+    padding: 1px;
+    border-radius: 4px;
+  }
+
+  .micro-grid>* {
+    background: var(--bg-secondary);
+    padding: 8px;
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply w-1.5 h-1.5 rounded-full;
+  }
+
+  .status-online {
+    @apply bg-white;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  }
+
+  .status-busy {
+    @apply bg-gray-400;
+    box-shadow: 0 0 8px rgba(156, 163, 175, 0.6);
+  }
+
+  .status-offline {
+    @apply bg-zinc-800;
+  }
+
+  /* Animation classes */
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  /* Data visualization styles */
+  .data-point {
+    @apply text-[8px] font-mono;
+    color: var(--text-tertiary);
+  }
+
+  .data-label {
+    @apply text-[7px] uppercase tracking-widest;
+    color: var(--text-micro);
+  }
+
+  /* Divider styles */
+  .glass-divider {
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--glass-border) 20%,
+        var(--glass-border) 80%,
+        transparent 100%);
+  }
+}
+
+@layer utilities {
+
+  /* Text gradient utilities */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-silver {
+    @apply bg-gradient-to-r from-zinc-300 to-zinc-500 bg-clip-text text-transparent;
+  }
+
+  /* Border gradient */
+  .border-gradient {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: 0.5rem;
+  }
+
+  .border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent-red-primary), var(--accent-red-dark), var(--accent-silver));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+}
+
+/* Remove default focus styles and add custom ones */
+*:focus {
+  @apply outline-none;
+}
+
+*:focus-visible {
+  @apply outline-none ring-1 ring-red-600/50;
+}
+
+/* Custom selection color */
+::selection {
+  background: rgba(204, 0, 0, 0.3);
+  color: white;
+}
+
+.font-vox {
+  font-family: "vox", sans-serif;
 }

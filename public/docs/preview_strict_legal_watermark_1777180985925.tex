@@ -1,0 +1,39 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{mathptmx}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{draftwatermark}
+
+\SetWatermarkText{\textbf{CONFIDENTIAL}}
+\SetWatermarkScale{0.5}
+\SetWatermarkColor[gray]{0.95}
+
+\definecolor{BrandPrimary}{HTML}{000000}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{\textcolor{BrandPrimary}{SAMPLE COMPANY}}}
+\fancyhead[R]{PREVIEW-0000}
+\fancyfoot[C]{\thepage}
+
+\begin{document}
+\begin{center}
+\LARGE\textbf{Document Layout Preview}
+\end{center}
+\vspace{1.5em}
+
+\section*{1. Sample Section}
+This is a demonstration of how the layout structure handles standard paragraphs and typography.
+
+\section*{2. Formatting Test}
+Another section to test spacing.
+
+\vspace{4em}
+\noindent
+\noindent
+\textbf{\textcolor{BrandPrimary}{SAMPLE ENTITY}}\\[1em]
+\hrulefill \\
+\textbf{John Doe}, CEO
+
+\end{document}

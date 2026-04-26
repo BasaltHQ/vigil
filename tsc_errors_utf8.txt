@@ -1,0 +1,86 @@
+﻿.next/dev/types/validator.ts(252,31): error TS2344: Type 'typeof import("I:/Agents/Varuna/Vigil/app/api/conversations/[id]/recent/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/conversations/[id]/recent">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: Request, { params }: { params: { id: string; }; }) => Promise<NextResponse<{ conversations: { id: string; createdAt: Date; updatedAt: Date; _count: { messages: number; }; title: string | null; swarmId: string | null; }[]; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type '{ params: { id: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(261,31): error TS2344: Type 'typeof import("I:/Agents/Varuna/Vigil/app/api/conversations/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/conversations/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: Request, { params }: { params: { id: string; }; }) => Promise<NextResponse<{ id: string; title: string | null; swarmId: string | null; updatedAt: Date; messages: { id: string; user: string; ... 9 more ...; reasoning_logs: any; }[]; }> | NextResponse<...>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type '{ params: { id: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+.next/dev/types/validator.ts(324,31): error TS2344: Type 'typeof import("I:/Agents/Varuna/Vigil/app/api/swarms/[id]/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/swarms/[id]">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: Request, { params }: { params: { id: string; }; }) => Promise<NextResponse<{ status: string; data: { id: string; name: string; description: string; icon: string; color: string; }; }>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ id: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ id: string; }>; }' is not assignable to type '{ params: { id: string; }; }'.
+          Types of property 'params' are incompatible.
+            Property 'id' is missing in type 'Promise<{ id: string; }>' but required in type '{ id: string; }'.
+app/(admin)/layout.tsx(19,18): error TS2339: Property 'parsedJWT' does not exist on type '{ valid: true; parsedJWT: JWTPayload<unknown>; } | { valid: false; error: string; }'.
+app/(app)/chat/page.tsx(456,5): error TS2353: Object literal may only specify known properties, and 'body' does not exist in type 'UseChatOptions<UIMessage<unknown, UIDataTypes, UITools>>'.
+app/(app)/layout.tsx(20,18): error TS2339: Property 'parsedJWT' does not exist on type '{ valid: true; parsedJWT: JWTPayload<unknown>; } | { valid: false; error: string; }'.
+app/(auth)/register/page.tsx(1,42): error TS2307: Cannot find module '../actions' or its corresponding type declarations.
+app/api/auth/[...thirdweb]/route.ts(23,20): error TS2339: Property 'parsedJWT' does not exist on type '{ valid: true; parsedJWT: JWTPayload<unknown>; } | { valid: false; error: string; }'.
+app/api/auth/onboarding/route.ts(12,20): error TS2339: Property 'parsedJWT' does not exist on type '{ valid: true; parsedJWT: JWTPayload<unknown>; } | { valid: false; error: string; }'.
+app/api/profile/route.ts(14,20): error TS2339: Property 'parsedJWT' does not exist on type '{ valid: true; parsedJWT: JWTPayload<unknown>; } | { valid: false; error: string; }'.
+app/api/profile/route.ts(51,20): error TS2339: Property 'parsedJWT' does not exist on type '{ valid: true; parsedJWT: JWTPayload<unknown>; } | { valid: false; error: string; }'.
+lib/agents/base_agent.ts(2,30): error TS2305: Module '"ai"' has no exported member 'CoreTool'.
+lib/agents/base_agent.ts(2,40): error TS2305: Module '"ai"' has no exported member 'CoreMessage'.
+lib/agents/base_agent.ts(93,20): error TS2339: Property 'args' does not exist on type 'TypedToolCall<Record<string, CoreTool>>'.
+  Property 'args' does not exist on type 'DynamicToolCall'.
+lib/agents/criminal_specialists.ts(24,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ agent_name, next_task }: { agent_name: any; next_task: any; }) => Promise<{ status: string; target: any; instructions: any; }>' is not assignable to type 'undefined'.
+lib/agents/criminal_specialists.ts(24,23): error TS7031: Binding element 'agent_name' implicitly has an 'any' type.
+lib/agents/criminal_specialists.ts(24,35): error TS7031: Binding element 'next_task' implicitly has an 'any' type.
+lib/agents/family_specialists.ts(24,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ agent_name, next_task }: { agent_name: any; next_task: any; }) => Promise<{ status: string; target: any; instructions: any; }>' is not assignable to type 'undefined'.
+lib/agents/family_specialists.ts(24,23): error TS7031: Binding element 'agent_name' implicitly has an 'any' type.
+lib/agents/family_specialists.ts(24,35): error TS7031: Binding element 'next_task' implicitly has an 'any' type.
+lib/agents/immigration_specialists.ts(24,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ agent_name, next_task }: { agent_name: any; next_task: any; }) => Promise<{ status: string; target: any; instructions: any; }>' is not assignable to type 'undefined'.
+lib/agents/immigration_specialists.ts(24,23): error TS7031: Binding element 'agent_name' implicitly has an 'any' type.
+lib/agents/immigration_specialists.ts(24,35): error TS7031: Binding element 'next_task' implicitly has an 'any' type.
+lib/agents/ip_entertainment_specialists.ts(24,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ agent_name, next_task }: { agent_name: any; next_task: any; }) => Promise<{ status: string; target: any; instructions: any; }>' is not assignable to type 'undefined'.
+lib/agents/ip_entertainment_specialists.ts(24,23): error TS7031: Binding element 'agent_name' implicitly has an 'any' type.
+lib/agents/ip_entertainment_specialists.ts(24,35): error TS7031: Binding element 'next_task' implicitly has an 'any' type.
+lib/agents/personal_injury_specialists.ts(24,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ agent_name, next_task }: { agent_name: any; next_task: any; }) => Promise<{ status: string; target: any; instructions: any; }>' is not assignable to type 'undefined'.
+lib/agents/personal_injury_specialists.ts(24,23): error TS7031: Binding element 'agent_name' implicitly has an 'any' type.
+lib/agents/personal_injury_specialists.ts(24,35): error TS7031: Binding element 'next_task' implicitly has an 'any' type.
+lib/agents/real_estate_specialists.ts(24,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ agent_name, next_task }: { agent_name: any; next_task: any; }) => Promise<{ status: string; target: any; instructions: any; }>' is not assignable to type 'undefined'.
+lib/agents/real_estate_specialists.ts(24,23): error TS7031: Binding element 'agent_name' implicitly has an 'any' type.
+lib/agents/real_estate_specialists.ts(24,35): error TS7031: Binding element 'next_task' implicitly has an 'any' type.
+lib/agents/specialists.ts(27,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ agent_name, next_task }: { agent_name: any; next_task: any; }) => Promise<{ status: string; target: any; instructions: any; }>' is not assignable to type 'undefined'.
+lib/agents/specialists.ts(27,23): error TS7031: Binding element 'agent_name' implicitly has an 'any' type.
+lib/agents/specialists.ts(27,35): error TS7031: Binding element 'next_task' implicitly has an 'any' type.
+lib/agents/specialists.ts(35,15): error TS2554: Expected 2-3 arguments, but got 1.
+lib/agents/specialists.ts(38,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ template, data, filename }: { template: any; data: any; filename: any; }) => Promise<{ success: boolean; filePath: string; }>' is not assignable to type 'undefined'.
+lib/agents/specialists.ts(38,23): error TS7031: Binding element 'template' implicitly has an 'any' type.
+lib/agents/specialists.ts(38,33): error TS7031: Binding element 'data' implicitly has an 'any' type.
+lib/agents/specialists.ts(38,39): error TS7031: Binding element 'filename' implicitly has an 'any' type.
+lib/agents/specialists.ts(49,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '({ file_path, folder }: { file_path: any; folder: any; }) => Promise<{ shareUrl?: string | undefined; error?: string | undefined; }>' is not assignable to type 'undefined'.
+lib/agents/specialists.ts(49,23): error TS7031: Binding element 'file_path' implicitly has an 'any' type.
+lib/agents/specialists.ts(49,34): error TS7031: Binding element 'folder' implicitly has an 'any' type.
+lib/agents/specialists.ts(56,5): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type '() => Promise<{ status: string; message: string; }>' is not assignable to type 'undefined'.
+lib/auth.ts(7,60): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Uint8Array<ArrayBufferLike> | `0x${string}`'.
+lib/auth.ts(18,3): error TS2353: Object literal may only specify known properties, and 'authOptions' does not exist in type 'AuthOptions'.
+prisma.config.ts(11,5): error TS2353: Object literal may only specify known properties, and 'directUrl' does not exist in type '{ url?: string | undefined; shadowDatabaseUrl?: string | undefined; }'.
