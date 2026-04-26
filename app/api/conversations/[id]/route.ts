@@ -40,7 +40,7 @@ export async function GET(
     }
 
     // Map Prisma messages to the frontend Message format
-    const formattedMessages = conversation.messages.map((msg) => ({
+    const formattedMessages = conversation.messages.map((msg: any) => ({
       id: msg.id,
       user: msg.role === 'user' ? msg.content : '',
       response: msg.role === 'assistant' ? msg.content : '',
