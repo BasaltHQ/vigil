@@ -224,7 +224,7 @@ export async function POST(req: Request) {
             content: typeof m.content === 'string' ? m.content : (m.parts ? m.parts.filter((p:any) => p.type === 'text').map((p:any) => p.text).join('\n') : '')
           }));
           
-          const { text } = await generateText({
+          const { text, usage: handoffUsage } = await generateText({
             model: patchedAzure.chat(process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-5.4-mini'),
             messages: [
               ...cleanHistory, 
@@ -232,6 +232,26 @@ export async function POST(req: Request) {
             ],
             system: specialistPrompt,
           });
+
+          // Track specialist agent token usage
+          if (handoffUsage && userId !== 'anonymous') {
+            try {
+              await (prisma as any).tokenUsage.create({
+                data: {
+                  userId,
+                  conversationId: conversation_id ? String(conversation_id) : null,
+                  model: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-5.4-mini',
+                  promptTokens: (handoffUsage as any).inputTokens || (handoffUsage as any).promptTokens || 0,
+                  completionTokens: (handoffUsage as any).outputTokens || (handoffUsage as any).completionTokens || 0,
+                  totalTokens: ((handoffUsage as any).inputTokens || (handoffUsage as any).promptTokens || 0) + ((handoffUsage as any).outputTokens || (handoffUsage as any).completionTokens || 0),
+                },
+              });
+              console.log(`[Handoff] ${agent_name} tokens: ${JSON.stringify(handoffUsage)}`);
+            } catch (e) {
+              console.error(`[Handoff TokenUsage] Failed to record for ${agent_name}:`, e);
+            }
+          }
+
           return { status: "success", target_agent: agent_name, specialist_report: text };
         } catch (e: any) {
           console.error(`[Handoff Error] Failed to execute handoff to ${agent_name}:`, e);
