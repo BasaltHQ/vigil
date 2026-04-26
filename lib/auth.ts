@@ -4,7 +4,7 @@ import { client } from "./thirdweb";
 import { sha256 } from "thirdweb/utils";
 
 // Make sure to load this only on the server
-const secretHex = (process.env.THIRDWEB_SECRET_KEY ? sha256(process.env.THIRDWEB_SECRET_KEY as `0x${string}`) : "0x0000000000000000000000000000000000000000000000000000000000000000") as any as `0x${string}`;
+const secretHex = (process.env.THIRDWEB_SECRET_KEY ? sha256(process.env.THIRDWEB_SECRET_KEY as `0x${string}`) : "0x0000000000000000000000000000000000000000000000000000000000000001") as any as `0x${string}`;
 
 const adminAccount = privateKeyToAccount({ 
   client, 
