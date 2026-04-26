@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { TerminalSquare, FileText, Users, Wrench, Shield, Settings } from "lucide-react";
+import { TerminalSquare, FileText, Users, Wrench, Shield, Settings, Menu, X } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { client } from "@/lib/thirdweb";
 import { inAppWallet } from "thirdweb/wallets";
@@ -14,6 +14,7 @@ export default function Navigation() {
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [displayName, setDisplayName] = useState<string>("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -53,6 +54,11 @@ export default function Navigation() {
     return () => clearInterval(timer);
   }, [account]);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   const handleSignOut = async () => {
     try {
       if (wallet) {
@@ -74,10 +80,11 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="glass-panel border-b border-glass-border z-50">
-      <div className="px-6 py-3">
+    <nav className="glass-panel border-b border-glass-border z-50 relative">
+      <div className="px-4 md:px-6 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-8">
+          {/* Logo + Desktop Nav */}
+          <div className="flex items-center gap-4 md:gap-8">
             <div className="flex items-center gap-3">
               <img src="/Vigil.png" alt="Vigil Shield" className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(204,0,0,0.4)]" />
               <h1 className="text-lg tracking-wider font-vox">
@@ -87,7 +94,8 @@ export default function Navigation() {
               </h1>
             </div>
 
-            <div className="flex items-center gap-1">
+            {/* Desktop Nav Items */}
+            <div className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
@@ -119,7 +127,8 @@ export default function Navigation() {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          {/* Desktop Right Side */}
+          <div className="hidden md:flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="status-dot status-online" />
               <span className="microtext-label">SYSTEM ONLINE</span>
@@ -145,8 +154,68 @@ export default function Navigation() {
               </button>
             </div>
           </div>
+
+          {/* Mobile: Status dot + Hamburger */}
+          <div className="flex md:hidden items-center gap-3">
+            <div className="status-dot status-online" />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="glass-button p-2 text-gray-300 hover:text-white"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden absolute top-full left-0 right-0 z-50 glass-panel bg-black/95 backdrop-blur-xl border-b border-white/10 shadow-2xl animate-slide-up">
+          <div className="p-4 space-y-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${pathname === item.href
+                  ? "bg-white/10 text-white border border-white/20"
+                  : "text-gray-300 hover:bg-white/5 border border-transparent"
+                  }`}
+              >
+                <item.icon size={20} />
+                <span className="text-sm font-bold tracking-wider">{item.name}</span>
+              </Link>
+            ))}
+
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${pathname === "/admin"
+                  ? "bg-red-900/20 text-red-400 border border-red-700/30"
+                  : "text-red-500/70 hover:bg-red-900/10 border border-transparent"
+                  }`}
+              >
+                <Shield size={20} />
+                <span className="text-sm font-bold tracking-wider">ADMIN</span>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile User Info */}
+          <div className="p-4 border-t border-white/10 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold tracking-wider text-gray-200">{displayName}</span>
+              <span className="text-[10px] text-gray-500 font-mono">{currentTime}</span>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="glass-button px-4 py-2 text-xs text-red-500 border border-red-700/30 hover:bg-red-900/20 font-bold tracking-wider"
+            >
+              SIGN OUT
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

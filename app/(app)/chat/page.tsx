@@ -9,7 +9,7 @@ import remarkGfm from "remark-gfm"; // Table support
 import Mermaid from "../../components/Mermaid"; // Mermaid support
 import CaseConfigPanel from "../../components/CaseConfigPanel";
 import { useConversation, Message } from "@/app/contexts/ConversationContext";
-import { FileText, ListChecks, BookOpen, FileOutput, File, ExternalLink, Download, X } from "lucide-react";
+import { FileText, ListChecks, BookOpen, FileOutput, File, ExternalLink, Download, X, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 
 interface ArtifactModalState {
   isOpen: boolean;
@@ -404,6 +404,7 @@ export default function Home() {
   const [activeAgents, setActiveAgents] = useState<string[]>([]);
     const [isPaused, setIsPaused] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string>("disconnected");
+  const [showLeftPanel, setShowLeftPanel] = useState(false);
 
   // New States for Welcome Screen
   const [showRecentModal, setShowRecentModal] = useState(false);
@@ -1448,8 +1449,40 @@ export default function Home() {
           </div>
         )}
 
-        {/* Left panel - Config & Constellation - Hidden on small mobile or stacked */}
-        <div className="h-64 md:h-full md:w-5/12 lg:w-4/12 flex-shrink-0 transition-all duration-300 flex flex-col">
+        {/* Mobile Toggle Button for Left Panel */}
+        <button
+          onClick={() => setShowLeftPanel(!showLeftPanel)}
+          className="fixed bottom-24 left-4 z-50 md:hidden glass-button p-3 rounded-full bg-black/80 border border-white/20 shadow-xl backdrop-blur-xl text-gray-300 hover:text-white"
+          aria-label="Toggle panel"
+        >
+          {showLeftPanel ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+        </button>
+
+        {/* Mobile Overlay Backdrop */}
+        {showLeftPanel && (
+          <div
+            className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm"
+            onClick={() => setShowLeftPanel(false)}
+          />
+        )}
+
+        {/* Left panel - Config & Constellation */}
+        <div className={`
+          fixed md:relative inset-y-0 left-0 z-40 md:z-auto
+          w-[85vw] sm:w-80 md:w-5/12 lg:w-4/12
+          flex-shrink-0 transition-transform duration-300 ease-in-out flex flex-col
+          bg-black md:bg-transparent
+          md:translate-x-0 md:h-full
+          ${showLeftPanel ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+
+          {/* Mobile close button inside panel */}
+          <button
+            onClick={() => setShowLeftPanel(false)}
+            className="absolute top-3 right-3 z-50 md:hidden glass-button p-2 rounded-full text-gray-400 hover:text-white"
+          >
+            <X size={18} />
+          </button>
 
           {/* New Case Configuration Panel */}
           <div className="flex-shrink-0">
@@ -1734,7 +1767,7 @@ export default function Home() {
                       fileInput?.click();
                     }}
                     disabled={isTaskRunning}
-                    className="glass-button px-3 text-gray-400 hover:text-white disabled:opacity-50"
+                    className="glass-button px-2 md:px-3 text-gray-400 hover:text-white disabled:opacity-50 flex-shrink-0"
                     title="Upload Document"
                   >
                     <span className="text-lg">📎</span>
@@ -1742,16 +1775,16 @@ export default function Home() {
                   <input
                     value={input}
                     onChange={handleInputChange}
-                    className="glass-input flex-1 bg-black/50 border-white/10 focus:border-white/30"
-                    placeholder="Enter your legal query or drop files..."
+                    className="glass-input flex-1 min-w-0 bg-black/50 border-white/10 focus:border-white/30 text-sm md:text-base"
+                    placeholder="Enter your legal query..."
                     disabled={isTaskRunning}
                   />
                   {isTaskRunning ? (
-                    <button type="button" onClick={handleStop} className="glass-button px-4 border-red-500/50 text-red-500 hover:bg-red-500/10" title="Stop">
+                    <button type="button" onClick={handleStop} className="glass-button px-3 md:px-4 border-red-500/50 text-red-500 hover:bg-red-500/10 flex-shrink-0" title="Stop">
                       <span className="text-lg">⏹</span>
                     </button>
                   ) : (
-                    <button type="submit" className="glass-button px-6 font-bold tracking-wider hover:bg-white/10" disabled={!input?.trim() && attachments.length === 0}>
+                    <button type="submit" className="glass-button px-4 md:px-6 font-bold tracking-wider hover:bg-white/10 flex-shrink-0 text-sm" disabled={!input?.trim() && attachments.length === 0}>
                       SEND
                     </button>
                   )}

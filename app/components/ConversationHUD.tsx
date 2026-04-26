@@ -70,7 +70,7 @@ export default function ConversationHUD({
   };
 
   return (
-    <div className={`absolute top-4 right-4 z-40 transition-all duration-300 ${isExpanded ? 'w-80' : 'w-auto'
+    <div className={`absolute top-2 right-2 md:top-4 md:right-4 z-40 transition-all duration-300 ${isExpanded ? 'w-72 md:w-80' : 'w-auto'
       }`}>
       <div className="glass-panel rounded-lg overflow-hidden border border-white/10 shadow-xl bg-black/80 backdrop-blur-md">
         {/* Header */}
