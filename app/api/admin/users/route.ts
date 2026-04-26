@@ -49,9 +49,9 @@ export async function GET() {
     });
 
     // Aggregate token usage per user
-    const users = profiles.map(p => {
+    const users = profiles.map((p: any) => {
       const totals = p.tokenUsage.reduce(
-        (acc, t) => ({
+        (acc: any, t: any) => ({
           promptTokens: acc.promptTokens + t.promptTokens,
           completionTokens: acc.completionTokens + t.completionTokens,
           totalTokens: acc.totalTokens + t.totalTokens,

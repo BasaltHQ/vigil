@@ -25,7 +25,7 @@ for (const [name, t] of Object.entries(allSpecialistTools) as [string, any][]) {
 console.log(`[Vigil] Pre-computed ${Object.keys(correctSchemas).length} tool schemas`);
 
 // Pre-load agent instruction files
-const instructionsDir = path.join(process.cwd(), 'lib', 'agents', 'instructions');
+const instructionsDir = path.join(/*turbopackIgnore: true*/ process.cwd(), 'lib', 'agents', 'instructions');
 
 function loadAgentInstructions(agentName: string, swarmId: string): string {
   const name = agentName.toLowerCase();
