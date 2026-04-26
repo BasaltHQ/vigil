@@ -10,7 +10,7 @@ export async function GET() {
     });
 
     const agentMetrics: Record<string, any> = {};
-    messages.forEach(m => {
+    messages.forEach((m: any) => {
       const name = m.agentName || 'System';
       if (!agentMetrics[name]) {
         agentMetrics[name] = { total_messages: 0, total_handoffs: 0, total_tool_calls: 0, average_response_time: 1.5 };
