@@ -330,7 +330,7 @@ function RecentCasesModal({ isOpen, onClose, onLoadCase }: { isOpen: boolean, on
   useEffect(() => {
     if (isOpen) {
       setLoading(true);
-      fetch('/api/conversations/default_user/recent?limit=50')
+      fetch('/api/conversations/_/recent?limit=50')
         .then(res => res.json())
         .then(data => {
           setCases(data.conversations || []);
@@ -664,7 +664,54 @@ export default function Home() {
   const getMessageText = (m: any) => {
     if (typeof m.content === 'string') return m.content;
     if (m.parts) {
-      return m.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('');
+      // Only get final response text — exclude reasoning/thinking parts
+      return m.parts
+        .filter((p: any) => p.type === 'text' && !p.type?.includes('reasoning'))
+        .map((p: any) => p.text)
+        .join('\n\n');
+    }
+    return '';
+  };
+
+  const getThinkingText = (m: any) => {
+    if (!m.parts) return '';
+    // AI SDK stores reasoning as parts with type 'reasoning' or 'thinking'
+    const reasoningParts = m.parts.filter((p: any) => p.type === 'reasoning' || p.type === 'thinking');
+    if (reasoningParts.length > 0) {
+      return reasoningParts.map((p: any) => p.text || p.reasoning || '').join('\n');
+    }
+    // Fallback: check if text starts with "Thinking:" pattern and split it
+    const textParts = m.parts.filter((p: any) => p.type === 'text');
+    if (textParts.length === 1) {
+      const text = textParts[0].text || '';
+      const thinkMatch = text.match(/^Thinking:\s*(.*?)(?:\n\n|(?=\n[A-Z]))/s);
+      if (thinkMatch) {
+        return thinkMatch[1].trim();
+      }
+    }
+    return '';
+  };
+
+  const getResponseWithoutThinking = (m: any) => {
+    if (typeof m.content === 'string') {
+      // Strip "Thinking: ..." prefix if present
+      return m.content.replace(/^Thinking:\s*.*?(?:\n\n)/s, '').trim();
+    }
+    if (m.parts) {
+      const reasoningParts = m.parts.filter((p: any) => p.type === 'reasoning' || p.type === 'thinking');
+      if (reasoningParts.length > 0) {
+        // Has explicit reasoning parts — only return text parts
+        return m.parts
+          .filter((p: any) => p.type === 'text')
+          .map((p: any) => p.text)
+          .join('\n\n');
+      }
+      // Fallback: strip "Thinking:" prefix from text parts
+      const allText = m.parts
+        .filter((p: any) => p.type === 'text')
+        .map((p: any) => p.text)
+        .join('\n\n');
+      return allText.replace(/^Thinking:\s*.*?(?:\n\n)/s, '').trim();
     }
     return '';
   };
@@ -675,7 +722,7 @@ export default function Home() {
     .filter(m => {
       // Filter out empty assistant messages (tool-only steps with no text)
       if (m.role === 'assistant') {
-        const text = getMessageText(m);
+        const text = getResponseWithoutThinking(m);
         if (!text || !text.trim()) return false;
       }
       // Filter out user messages that only contain the injected document text
@@ -688,9 +735,11 @@ export default function Home() {
     .map(m => ({
       id: m.id,
       user: m.role === 'user' ? getMessageText(m).split('\n\n[The following documents were uploaded')[0].trim() : "",
-      response: m.role !== 'user' ? getMessageText(m) : "",
+      response: m.role !== 'user' ? getResponseWithoutThinking(m) : "",
       timestamp: new Date().toISOString(),
       agent_name: m.role === 'assistant' ? orchestratorName : undefined,
+      is_thinking: false,
+      thinking_text: m.role === 'assistant' ? getThinkingText(m) : "",
       // Include tool activity indicators for the reasoning feed
       has_tool_activity: (m.parts || []).some((p: any) => p.type?.startsWith('tool-')),
       ...((m as any).metadata || {})
@@ -769,7 +818,7 @@ export default function Home() {
 
   // Fetch recent cases for welcome screen
   useEffect(() => {
-    fetch('/api/conversations/default_user/recent?limit=3')
+    fetch('/api/conversations/_/recent?limit=3')
       .then(res => res.json())
       .then(data => setRecentCasesSummary(data.conversations || []))
       .catch(console.error);
@@ -1086,7 +1135,6 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: "default_user",
           swarm_id: selectedSwarm,
           metadata: {
             jurisdiction,
@@ -1622,81 +1670,101 @@ export default function Home() {
                         {msg.user ? (
                           <p className="text-sm text-gray-200 leading-relaxed">{msg.user}</p>
                         ) : msg.response ? (
-                          <div className={`prose prose-sm prose-invert max-w-none ${msg.is_thinking ? 'opacity-70 italic' : ''}`}>
-                            {msg.is_thinking && <span className="not-italic mr-1">💭</span>}
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              components={{
-                                p: ({ children }) => <div className="text-sm leading-relaxed mb-2 text-gray-300 whitespace-pre-wrap">{children}</div>,
-                                h1: ({ children }) => <h1 className="text-lg font-semibold mb-2 text-white mt-4">{children}</h1>,
-                                h2: ({ children }) => <h2 className="text-base font-semibold mb-2 text-gray-200 mt-3">{children}</h2>,
-                                h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 text-gray-300 mt-2">{children}</h3>,
-                                ul: ({ children }) => <ul className="list-disc list-inside text-sm space-y-1 text-gray-400 mb-2">{children}</ul>,
-                                ol: ({ children }) => <ol className="list-decimal list-inside text-sm space-y-1 text-gray-400 mb-2">{children}</ol>,
-                                table: ({ children }) => <div className="overflow-x-auto my-4 border border-white/10 rounded-lg"><table className="min-w-full text-left text-sm text-gray-300">{children}</table></div>,
-                                thead: ({ children }) => <thead className="bg-white/5 border-b border-white/10 text-xs uppercase text-gray-400">{children}</thead>,
-                                th: ({ children }) => <th className="px-4 py-3 font-medium">{children}</th>,
-                                td: ({ children }) => <td className="px-4 py-2 border-b border-white/5">{children}</td>,
-                                code: ({ className, children, ...props }: any) => {
-                                  const match = /language-mermaid/.exec(className || '');
-                                  if (match) {
-                                    return <Mermaid chart={String(children).replace(/\n$/, '')} />;
-                                  }
-                                  const isInline = !className;
-                                  return (
-                                    <code
-                                      className={`${className} ${isInline ? 'bg-white/10 px-1 py-0.5 rounded text-white' : 'block bg-black/50 p-3 rounded-lg border border-white/10 my-2 overflow-x-auto'} font-mono text-xs text-gray-300`}
-                                      {...props}
-                                    >
-                                      {children}
-                                    </code>
-                                  );
-                                },
-                                a: ({ href, children }) => {
-                                  if (href?.toLowerCase().endsWith('.pdf')) {
+                          <div>
+                            {/* Thinking/Reasoning — collapsible, visually distinct */}
+                            {msg.thinking_text && (
+                              <details className="mb-3 group">
+                                <summary className="flex items-center gap-2 cursor-pointer text-[11px] text-gray-500 hover:text-gray-400 transition-colors select-none">
+                                  <svg className="w-3.5 h-3.5 text-gray-600 group-open:text-red-500/60 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                  </svg>
+                                  <span className="uppercase tracking-widest font-mono">Internal Reasoning</span>
+                                  <svg className="w-3 h-3 transition-transform group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </summary>
+                                <div className="mt-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] text-[12px] text-gray-500 italic leading-relaxed font-mono">
+                                  {msg.thinking_text}
+                                </div>
+                              </details>
+                            )}
+
+                            {/* Main response */}
+                            <div className={`prose prose-sm prose-invert max-w-none`}>
+                              <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                  p: ({ children }) => <div className="text-sm leading-relaxed mb-2 text-gray-300 whitespace-pre-wrap">{children}</div>,
+                                  h1: ({ children }) => <h1 className="text-lg font-semibold mb-2 text-white mt-4">{children}</h1>,
+                                  h2: ({ children }) => <h2 className="text-base font-semibold mb-2 text-gray-200 mt-3">{children}</h2>,
+                                  h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 text-gray-300 mt-2">{children}</h3>,
+                                  ul: ({ children }) => <ul className="list-disc list-inside text-sm space-y-1 text-gray-400 mb-2">{children}</ul>,
+                                  ol: ({ children }) => <ol className="list-decimal list-inside text-sm space-y-1 text-gray-400 mb-2">{children}</ol>,
+                                  table: ({ children }) => <div className="overflow-x-auto my-4 border border-white/10 rounded-lg"><table className="min-w-full text-left text-sm text-gray-300">{children}</table></div>,
+                                  thead: ({ children }) => <thead className="bg-white/5 border-b border-white/10 text-xs uppercase text-gray-400">{children}</thead>,
+                                  th: ({ children }) => <th className="px-4 py-3 font-medium">{children}</th>,
+                                  td: ({ children }) => <td className="px-4 py-2 border-b border-white/5">{children}</td>,
+                                  code: ({ className, children, ...props }: any) => {
+                                    const match = /language-mermaid/.exec(className || '');
+                                    if (match) {
+                                      return <Mermaid chart={String(children).replace(/\n$/, '')} />;
+                                    }
+                                    const isInline = !className;
                                     return (
-                                      <div 
-                                        onClick={(e) => { e.preventDefault(); openArtifact(href, 'PDF Document'); }}
-                                        className="cursor-pointer block mt-3 mb-3 p-4 bg-red-950/20 border border-red-700/30 rounded-lg max-w-sm group hover:bg-red-900/30 transition-all no-underline shadow-lg shadow-red-950/10"
+                                      <code
+                                        className={`${className} ${isInline ? 'bg-white/10 px-1 py-0.5 rounded text-white' : 'block bg-black/50 p-3 rounded-lg border border-white/10 my-2 overflow-x-auto'} font-mono text-xs text-gray-300`}
+                                        {...props}
                                       >
-                                        <div className="flex items-center gap-4">
-                                          <a 
-                                            href={href?.startsWith('http') ? href : `/api/artifacts/file?path=${encodeURIComponent(href)}`}
-                                            download
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="p-3 bg-red-900/20 rounded-md text-red-500 hover:bg-red-800/40 hover:text-white transition-colors"
-                                            title="Download PDF directly"
-                                          >
-                                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                          </a>
-                                          <div className="flex-1 min-w-0">
-                                            <h4 className="text-sm font-semibold text-red-100 truncate w-full">{children || 'Download Document'}</h4>
-                                            <div className="text-[10px] text-red-500/70 font-mono mt-1 uppercase tracking-widest">PDF Document Ready</div>
-                                          </div>
-                                          <div className="opacity-50 group-hover:opacity-100 transition-opacity">
-                                            <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
+                                        {children}
+                                      </code>
+                                    );
+                                  },
+                                  a: ({ href, children }) => {
+                                    if (href?.toLowerCase().endsWith('.pdf')) {
+                                      return (
+                                        <div 
+                                          onClick={(e) => { e.preventDefault(); openArtifact(href, 'PDF Document'); }}
+                                          className="cursor-pointer block mt-3 mb-3 p-4 bg-red-950/20 border border-red-700/30 rounded-lg max-w-sm group hover:bg-red-900/30 transition-all no-underline shadow-lg shadow-red-950/10"
+                                        >
+                                          <div className="flex items-center gap-4">
+                                            <a 
+                                              href={href?.startsWith('http') ? href : `/api/artifacts/file?path=${encodeURIComponent(href)}`}
+                                              download
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              onClick={(e) => e.stopPropagation()}
+                                              className="p-3 bg-red-900/20 rounded-md text-red-500 hover:bg-red-800/40 hover:text-white transition-colors"
+                                              title="Download PDF directly"
+                                            >
+                                              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                              </svg>
+                                            </a>
+                                            <div className="flex-1 min-w-0">
+                                              <h4 className="text-sm font-semibold text-red-100 truncate w-full">{children || 'Download Document'}</h4>
+                                              <div className="text-[10px] text-red-500/70 font-mono mt-1 uppercase tracking-widest">PDF Document Ready</div>
+                                            </div>
+                                            <div className="opacity-50 group-hover:opacity-100 transition-opacity">
+                                              <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                              </svg>
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
+                                      );
+                                    }
+                                    return (
+                                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-white hover:underline decoration-gray-500 underline-offset-4">
+                                        {children}
+                                      </a>
                                     );
-                                  }
-                                  return (
-                                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-white hover:underline decoration-gray-500 underline-offset-4">
-                                      {children}
-                                    </a>
-                                  );
-                                },
-                              }}
-                            >
-                              {msg.response}
-                            </ReactMarkdown>
+                                  },
+                                }}
+                              >
+                                {msg.response}
+                              </ReactMarkdown>
+                            </div>
                           </div>
                         ) : null}
 

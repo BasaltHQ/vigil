@@ -108,7 +108,6 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: "default_user",
           title: `Session ${new Date().toLocaleString()}`,
         }),
       });

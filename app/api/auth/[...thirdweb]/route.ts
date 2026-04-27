@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { thirdwebAuth } from "@/lib/auth";
 
+const COOKIE_DOMAIN = process.env.NODE_ENV === "production" ? ".basalthq.com" : undefined;
 export async function GET(req: NextRequest, { params }: { params: Promise<{ thirdweb: string[] }> }) {
   const p = await params;
   const action = p.thirdweb[0];
@@ -62,7 +63,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ thi
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        path: "/"
+        path: "/",
+        ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
       });
       return res;
     } catch (e: any) {
@@ -77,7 +79,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ thi
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 0
+      maxAge: 0,
+      ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
     });
     return res;
   }

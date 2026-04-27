@@ -36,6 +36,10 @@ export default async function AppLayout({
     redirect("/onboarding");
   }
 
+  if (profile && profile.status === 'pending') {
+    redirect("/pending");
+  }
+
   return (
     <ConversationProvider>
       <div className="h-screen flex flex-col">

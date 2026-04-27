@@ -28,31 +28,42 @@ export default function LoginPage(props: {
       .catch(() => {});
   }, []);
 
-  // Automatic onboarding if profiles contain an email
+  // Automatic onboarding after backend login succeeds
   useEffect(() => {
-    if (isBackendLoggedIn && account && profiles !== undefined) {
-      if (profiles.length > 0) {
-        // Thirdweb might return multiple profiles (e.g., 'email' type without name, and 'google' type with name)
-        // We prioritize finding a profile that explicitly contains a name
+    if (!isBackendLoggedIn || !account) return;
+
+    // Try to auto-onboard with profile data (social logins)
+    const tryOnboard = async () => {
+      if (profiles && profiles.length > 0) {
         const emailProfile = profiles.find((p: any) => p.details?.email && p.details?.name) || profiles.find((p: any) => p.details?.email);
         if (emailProfile && emailProfile.details) {
           const details = emailProfile.details as any;
-          // Automatically submit onboarding
-          fetch("/api/auth/onboarding", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: details.email,
-              displayName: details.name || details.givenName || details.email
-            })
-          }).finally(() => {
-            router.push("/chat");
-          });
-          return;
+          try {
+            await fetch("/api/auth/onboarding", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: details.email,
+                displayName: details.name || details.givenName || details.email
+              })
+            });
+          } catch {}
         }
       }
-      // If no profiles exist, or no email profile was found, proceed immediately
+      // Always redirect to chat regardless of onboarding result
       router.push("/chat");
+    };
+
+    // For external wallets, profiles may never load — use a short timeout
+    // For social logins, profiles should be available almost immediately
+    if (profiles !== undefined) {
+      tryOnboard();
+    } else {
+      // Give profiles 1.5s to load, then redirect anyway
+      const timer = setTimeout(() => {
+        router.push("/chat");
+      }, 1500);
+      return () => clearTimeout(timer);
     }
   }, [isBackendLoggedIn, account, profiles, router]);
 
@@ -158,6 +169,8 @@ export default function LoginPage(props: {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(params),
               });
+              // Clear any stale conversation state from a previous user session
+              localStorage.removeItem('currentConversationId');
               setIsBackendLoggedIn(true);
             },
             getLoginPayload: async ({ address }) => {
