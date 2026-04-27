@@ -684,7 +684,7 @@ export default function Home() {
     const textParts = m.parts.filter((p: any) => p.type === 'text');
     if (textParts.length === 1) {
       const text = textParts[0].text || '';
-      const thinkMatch = text.match(/^Thinking:\s*(.*?)(?:\n\n|(?=\n[A-Z]))/s);
+      const thinkMatch = text.match(/^Thinking:\s*([\s\S]*?)(?:\n\n|(?=\n[A-Z]))/);
       if (thinkMatch) {
         return thinkMatch[1].trim();
       }
@@ -695,7 +695,7 @@ export default function Home() {
   const getResponseWithoutThinking = (m: any) => {
     if (typeof m.content === 'string') {
       // Strip "Thinking: ..." prefix if present
-      return m.content.replace(/^Thinking:\s*.*?(?:\n\n)/s, '').trim();
+      return m.content.replace(/^Thinking:\s*[\s\S]*?(?:\n\n)/, '').trim();
     }
     if (m.parts) {
       const reasoningParts = m.parts.filter((p: any) => p.type === 'reasoning' || p.type === 'thinking');
@@ -711,7 +711,7 @@ export default function Home() {
         .filter((p: any) => p.type === 'text')
         .map((p: any) => p.text)
         .join('\n\n');
-      return allText.replace(/^Thinking:\s*.*?(?:\n\n)/s, '').trim();
+      return allText.replace(/^Thinking:\s*[\s\S]*?(?:\n\n)/, '').trim();
     }
     return '';
   };
@@ -1674,8 +1674,8 @@ export default function Home() {
                             {/* Thinking/Reasoning — collapsible, visually distinct */}
                             {msg.thinking_text && (
                               <details className="mb-3 group">
-                                <summary className="flex items-center gap-2 cursor-pointer text-[11px] text-gray-500 hover:text-gray-400 transition-colors select-none">
-                                  <svg className="w-3.5 h-3.5 text-gray-600 group-open:text-red-500/60 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <summary className="flex items-center gap-2 cursor-pointer text-[11px] text-gray-400 hover:text-gray-300 transition-colors select-none">
+                                  <svg className="w-3.5 h-3.5 text-gray-400 group-open:text-red-500/60 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                                   </svg>
                                   <span className="uppercase tracking-widest font-mono">Internal Reasoning</span>
@@ -1683,7 +1683,7 @@ export default function Home() {
                                     <path d="M9 5l7 7-7 7" />
                                   </svg>
                                 </summary>
-                                <div className="mt-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] text-[12px] text-gray-500 italic leading-relaxed font-mono">
+                                <div className="mt-2 p-3 rounded-lg bg-white/[0.03] border border-white/[0.08] text-[12px] text-gray-400 italic leading-relaxed font-mono">
                                   {msg.thinking_text}
                                 </div>
                               </details>
