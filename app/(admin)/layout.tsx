@@ -19,7 +19,7 @@ export default async function AdminLayout({
   const authResult = await thirdwebAuth.verifyJWT({ jwt: token });
 
   if (!authResult.valid || !authResult.parsedJWT.sub) {
-    redirect('/login');
+    redirect('/api/auth/logout-redirect');
   }
 
   // Check admin role

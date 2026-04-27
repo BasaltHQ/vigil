@@ -27,7 +27,7 @@ export default async function AppLayout({
   const authResult = await thirdwebAuth.verifyJWT({ jwt: token });
 
   if (!authResult.valid || !authResult.parsedJWT.sub) {
-    redirect('/login');
+    redirect('/api/auth/logout-redirect');
   }
 
   const profile = await prisma.profile.findUnique({ where: { id: authResult.parsedJWT.sub } });
