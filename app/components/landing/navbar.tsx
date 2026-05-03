@@ -31,19 +31,14 @@ export function Navbar() {
     };
   }, []);
 
-  const sections = useMemo(() => [
-    { id: "products", label: "FEATURES" },
-    { id: "vision", label: "OUR VISION" },
-  ], []);
-
   const pages = useMemo(() => [
+    { path: "/features", label: "FEATURES" },
+    { path: "/vision", label: "OUR VISION" },
+    { path: "/blog", label: "BLOG" },
+    { path: "/pricing", label: "PRICING" },
     { path: "/about", label: "ABOUT" },
     { path: "/contact", label: "CONTACT" },
   ], []);
-
-  const products = [
-    { name: "CONSOLE", url: "/chat" },
-  ];
 
   const isHomepage = pathname === "/";
   const themeColor = currentTheme.color;
@@ -91,56 +86,16 @@ export function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {isHomepage ? (
-                <>
-                  {sections.map((s) => (
-                    <Link
-                      key={s.id}
-                      href={`#${s.id}`}
-                      className="px-4 py-2 text-xs font-mono tracking-wider text-gray-400 hover:text-white hover:bg-white/5 rounded-[10px] transition-all duration-200"
-                    >
-                      {s.label}
-                    </Link>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {pages.map((page) => (
-                    <Link
-                      key={page.path}
-                      href={page.path}
-                      className={`px-4 py-2 text-xs font-mono tracking-wider hover:text-white hover:bg-white/5 rounded-[10px] transition-all duration-200 ${pathname === page.path ? 'text-white bg-white/5' : 'text-gray-400'
-                        }`}
-                    >
-                      {page.label}
-                    </Link>
-                  ))}
-                </>
-              )}
-
-              {/* Suite Dropdown matched to template style */}
-              <div className="relative group">
-                <button className="flex items-center gap-1 px-4 py-2 text-xs font-mono tracking-wider text-gray-400 hover:text-white hover:bg-white/5 rounded-[10px] transition-all duration-200">
-                  PLATFORM
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pt-2">
-                  <div
-                    className="glass-pane rounded-lg shadow-xl ring-1 ring-white/10 p-2 bg-black/80 backdrop-blur-xl"
-                    style={{ borderColor: `${themeColor}40` }}
-                  >
-                    {products.map((product) => (
-                      <Link
-                        key={product.name}
-                        href={product.url}
-                        className="block px-4 py-2 text-xs font-mono tracking-wider text-gray-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
-                      >
-                        {product.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              {pages.map((page) => (
+                <Link
+                  key={page.path}
+                  href={page.path}
+                  className={`px-3 py-2 text-xs font-mono tracking-wider hover:text-white hover:bg-white/5 rounded-[10px] transition-all duration-200 ${pathname === page.path ? 'text-white bg-white/5' : 'text-gray-400'
+                    }`}
+                >
+                  {page.label}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -185,50 +140,19 @@ export function Navbar() {
             style={{ borderColor: `${themeColor}40` }}
           >
             <nav className="flex flex-col gap-2">
-              {isHomepage ? (
-                <>
-                  {sections.map((s) => (
-                    <Link
-                      key={s.id}
-                      href={`#${s.id}`}
-                      className="px-4 py-3 text-sm font-mono tracking-wider text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {s.label}
-                    </Link>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {pages.map((page) => (
-                    <Link
-                      key={page.path}
-                      href={page.path}
-                      className="px-4 py-3 text-sm font-mono tracking-wider text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {page.label}
-                    </Link>
-                  ))}
-                </>
-              )}
 
-              <div className="border-t border-white/10 mt-2 pt-2">
-                <div className="text-[10px] font-mono text-gray-500 mb-2 px-4">PLATFORM</div>
-                {products.map((product) => (
-                  <Link
-                    key={product.name}
-                    href={product.url}
-                    className="block px-4 py-2 text-xs font-mono tracking-wider text-gray-400 hover:text-white transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                    style={{ '--hover-color': themeColor } as React.CSSProperties}
-                    onMouseEnter={(e) => e.currentTarget.style.color = themeColor}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
-                  >
-                    {product.name}
-                  </Link>
-                ))}
-              </div>
+              {pages.map((page) => (
+                <Link
+                  key={page.path}
+                  href={page.path}
+                  className="px-4 py-3 text-sm font-mono tracking-wider text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {page.label}
+                </Link>
+              ))}
+
+              {/* Removed Mobile Platform Dropdown */}
 
               <div className="pt-2 flex flex-col gap-2">
                 <Link

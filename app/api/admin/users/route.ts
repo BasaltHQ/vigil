@@ -67,6 +67,7 @@ export async function GET() {
         status: p.status,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
+        tier: p.tier,
         tokenUsage: totals,
         requestCount: p.tokenUsage.length,
       };
@@ -85,7 +86,7 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const { userId, status, role } = await req.json();
+    const { userId, status, role, tier } = await req.json();
 
     if (!userId) {
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
@@ -99,6 +100,7 @@ export async function PATCH(req: Request) {
     const updateData: any = {};
     if (status) updateData.status = status;
     if (role) updateData.role = role;
+    if (tier) updateData.tier = tier;
 
     const updated = await prisma.profile.update({
       where: { id: userId },

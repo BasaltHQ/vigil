@@ -58,6 +58,10 @@ model Profile {
   onboardingComplete Boolean      @default(false) @map("onboarding_complete")
   role               String       @default("client") // "admin" | "client"
   status             String       @default("pending") // "active" | "pending" | "suspended"
+  tier               String       @default("starter") // "starter" | "pro" | "firm" | "enterprise"
+  stripeCustomerId   String?      @map("stripe_customer_id")
+  stripeSubscriptionId String?    @map("stripe_subscription_id")
+  stripePriceId      String?      @map("stripe_price_id")
   companyUrl         String?      @map("company_url")
   companyName     String?      @map("company_name")
   brandAssets     Json?        @map("brand_assets")

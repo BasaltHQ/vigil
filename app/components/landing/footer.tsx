@@ -4,138 +4,94 @@ import Image from "next/image";
 import Link from "next/link";
 import { Shield, ArrowRight, Github, Twitter, Linkedin } from "lucide-react";
 
-const useBrandTheme = () => ({ currentTheme: { color: "#b71928", label: "Varuna", name: "Varuna", description: "Vigil AI", id: "varuna", tailwindColor: "red-500" } });
+const themeColor = "#b71928";
 
 export function Footer() {
-  const { currentTheme } = useBrandTheme();
-
   return (
     <footer className="bg-[#020202] border-t border-white/5 pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-10 mb-16">
+
           {/* Brand Column */}
-          <div className="lg:col-span-1">
+          <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3 mb-6">
               <div className="relative w-8 h-8">
-                <Image
-                  src="/Vigil.png"
-                  alt="Vigil Logo"
-                  fill
-                  className="object-contain"
-                />
+                <Image src="/Vigil.png" alt="Vigil Logo" fill className="object-contain" />
               </div>
               <span className="text-xl tracking-widest text-gray-200 font-vox">
                 <span className="font-light">BASALT</span><span className="font-bold">VIGIL</span>
               </span>
             </Link>
-            <p className="text-muted-foreground/70 text-sm mb-6 max-w-xs leading-relaxed">
+            <p className="text-gray-500 text-sm mb-6 max-w-xs leading-relaxed">
               Exquisite Agentic Intelligence for high-end corporate law. Unrelenting discovery, collaborative drafting, and absolute security.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-white transition-colors">
+              <a href="https://x.com/BasaltHQ" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-white transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-white transition-colors">
+              <a href="https://linkedin.com/company/basalthq" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-white transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-white transition-colors">
+              <a href="https://github.com/BasaltHQ" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-white transition-colors">
                 <Github className="h-5 w-5" />
               </a>
             </div>
           </div>
 
-          {/* Explore */}
+          {/* Platform */}
           <div>
-            <h3 className="font-semibold text-white mb-6 tracking-wider text-sm">EXPLORE</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/chat" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  Agentic Swarm Platform
-                </Link>
-              </li>
-              <li>
-                <Link href="/documents" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  Document Automation
-                </Link>
-              </li>
-              <li>
-                <Link href="/agents" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  Corporate Governance
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  Partner Dashboard
-                </Link>
-              </li>
+            <h3 className="font-semibold text-white mb-6 tracking-wider text-xs font-mono">PLATFORM</h3>
+            <ul className="space-y-3">
+              <li><Link href="/chat" className="text-gray-500 hover:text-white transition-colors text-sm">Console</Link></li>
+              <li><Link href="/pricing" className="text-gray-500 hover:text-white transition-colors text-sm">Pricing</Link></li>
+              <li><Link href="/industries" className="text-gray-500 hover:text-white transition-colors text-sm">Industries</Link></li>
+              <li><Link href="/comparisons" className="text-gray-500 hover:text-white transition-colors text-sm">Comparisons</Link></li>
+              <li><Link href="/locations" className="text-gray-500 hover:text-white transition-colors text-sm">Locations</Link></li>
             </ul>
           </div>
 
           {/* Resources */}
           <div>
-            <h3 className="font-semibold text-white mb-6 tracking-wider text-sm">RESOURCES</h3>
-            <ul className="space-y-4">
-              <li>
-                <a href="#" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  Documentation
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  Security Whitepaper
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  API Reference
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-muted-foreground/80 hover:text-white transition-colors text-sm">
-                  System Status
-                </a>
-              </li>
+            <h3 className="font-semibold text-white mb-6 tracking-wider text-xs font-mono">RESOURCES</h3>
+            <ul className="space-y-3">
+              <li><Link href="/blog" className="text-gray-500 hover:text-white transition-colors text-sm">Blog</Link></li>
+              <li><Link href="/codex" className="text-gray-500 hover:text-white transition-colors text-sm">Codex</Link></li>
+              <li><Link href="/about" className="text-gray-500 hover:text-white transition-colors text-sm">About</Link></li>
+              <li><Link href="/contact" className="text-gray-500 hover:text-white transition-colors text-sm">Contact</Link></li>
             </ul>
           </div>
 
-          {/* Action Column */}
+          {/* Initialize */}
           <div>
-            <h3 className="font-semibold text-white mb-6 tracking-wider text-sm">INITIALIZE</h3>
-            <p className="text-muted-foreground/80 text-sm mb-6">
-              Ready to deploy your legal constellation?
+            <h3 className="font-semibold text-white mb-6 tracking-wider text-xs font-mono">INITIALIZE</h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Deploy your agentic constellation.
             </p>
             <Link
               href="/chat"
-              className="group inline-flex items-center justify-between w-full p-4 rounded-xl border transition-all duration-300"
-              style={{
-                borderColor: `${currentTheme.color}30`,
-                backgroundColor: `${currentTheme.color}05`
-              }}
+              className="group inline-flex items-center gap-2 px-4 py-3 rounded-xl border transition-all duration-300 w-full justify-between"
+              style={{ borderColor: `${themeColor}30`, backgroundColor: `${themeColor}05` }}
             >
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5" style={{ color: currentTheme.color }} />
-                <span className="font-semibold text-white">Start Case</span>
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4" style={{ color: themeColor }} />
+                <span className="font-semibold text-white text-sm">Start Case</span>
               </div>
-              <ArrowRight 
-                className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" 
-                style={{ color: currentTheme.color }}
-              />
+              <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" style={{ color: themeColor }} />
             </Link>
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-muted-foreground/60 text-xs">
+          <p className="text-gray-600 text-xs">
             © {new Date().getFullYear()} Vigil Platform by BasaltHQ. All rights reserved.
           </p>
           <div className="flex gap-6 text-xs font-mono">
-            <a href="#" className="text-muted-foreground/60 hover:text-white transition-colors">
-              PRIVACY_POLICY
-            </a>
-            <a href="#" className="text-muted-foreground/60 hover:text-white transition-colors">
-              TERMS_OF_SERVICE
-            </a>
+            <Link href="/blog" className="text-gray-600 hover:text-white transition-colors">BLOG</Link>
+            <Link href="/codex" className="text-gray-600 hover:text-white transition-colors">CODEX</Link>
+            <Link href="/industries" className="text-gray-600 hover:text-white transition-colors">INDUSTRIES</Link>
+            <Link href="/locations" className="text-gray-600 hover:text-white transition-colors">LOCATIONS</Link>
+            <Link href="/sitemap.xml" className="text-gray-600 hover:text-white transition-colors">SITEMAP</Link>
           </div>
         </div>
       </div>

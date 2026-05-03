@@ -65,12 +65,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, migrated: true });
     }
 
-    await prisma.profile.update({
+    await prisma.profile.upsert({
       where: { id: address },
-      data: {
+      update: {
         email,
         displayName: displayName || null,
         onboardingComplete: true
+      },
+      create: {
+        id: address,
+        email,
+        displayName: displayName || null,
+        onboardingComplete: true,
+        status: 'active', // Because they came from BasaltHQ cookie
+        tier: 'starter',
+        role: 'client'
       }
     });
 

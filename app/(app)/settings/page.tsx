@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Loader2, Save, Image as ImageIcon, CheckCircle, Palette, Type, MessageSquare, Briefcase, FileText, Maximize2, Target, Globe, Upload, X, User } from "lucide-react";
+import { Search, Loader2, Save, Image as ImageIcon, CheckCircle, Palette, Type, MessageSquare, Briefcase, FileText, Maximize2, Target, Globe, Upload, X, User, CreditCard } from "lucide-react";
 import { FORTUNE_50_TEMPLATES } from "@/lib/templates/fortune50";
 import { ConnectButton, darkTheme } from "thirdweb/react";
 import { inAppWallet } from "thirdweb/wallets";
@@ -14,6 +14,7 @@ export default function SettingsPage() {
   const [companyNameInput, setCompanyNameInput] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   
   // Doc ID State
   const [docIdTemplate, setDocIdTemplate] = useState("VARUNA-[YYYY]-[####]");
@@ -30,6 +31,10 @@ export default function SettingsPage() {
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<"identity" | "billing">("identity");
+  const [isAnnual, setIsAnnual] = useState(true);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -95,6 +100,27 @@ export default function SettingsPage() {
         if (data.docIdCounter !== undefined) setDocIdCounter(data.docIdCounter);
       });
   }, []);
+
+  const handleCheckout = async (priceId: string) => {
+    setIsCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to start checkout: " + data.error);
+      }
+    } catch (error) {
+      alert("Checkout failed.");
+    } finally {
+      setIsCheckoutLoading(false);
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!urlInput) return;
@@ -191,9 +217,27 @@ export default function SettingsPage() {
   return (
     <div className="h-full flex flex-col bg-black/40 overflow-hidden relative">
       <div className="flex-1 overflow-y-auto p-8 max-w-6xl mx-auto w-full">
-        <h2 className="text-2xl font-vox text-white tracking-wider mb-8">BRAND IDENTITY & SETTINGS</h2>
+        <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
+          <h2 className="text-2xl font-vox text-white tracking-wider">WORKSPACE SETTINGS</h2>
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setActiveTab("identity")}
+              className={`px-4 py-2 font-mono text-xs tracking-widest rounded-t-lg border-b-2 transition-colors ${activeTab === "identity" ? "border-[#b71928] text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
+            >
+              IDENTITY
+            </button>
+            <button 
+              onClick={() => setActiveTab("billing")}
+              className={`px-4 py-2 font-mono text-xs tracking-widest rounded-t-lg border-b-2 transition-colors ${activeTab === "billing" ? "border-[#b71928] text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
+            >
+              BILLING
+            </button>
+          </div>
+        </div>
 
-        {/* User Profile Section */}
+        {activeTab === "identity" && (
+          <>
+            {/* User Profile Section */}
         <div className="glass-panel p-6 border-white/10 mb-8">
           <div className="flex justify-between items-start mb-6">
             <h3 className="text-sm font-bold text-gray-300 tracking-wider flex items-center gap-2">
@@ -238,6 +282,10 @@ export default function SettingsPage() {
             <div>
               <div className="text-xs text-gray-500 mb-1 tracking-wider">EMAIL ADDRESS</div>
               <p className="text-sm text-gray-300">{profile.email || "Not Provided"}</p>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 mb-1 tracking-wider">ACCOUNT ROLE</div>
+              <p className="text-sm text-gray-300 uppercase tracking-widest">{profile.role}</p>
             </div>
             <div>
               <div className="text-xs text-gray-500 mb-1 tracking-wider">ACCOUNT ROLE</div>
@@ -452,6 +500,160 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
+
+        {activeTab === "billing" && (
+          <div className="space-y-8">
+            <div className="glass-panel p-6 border-white/10">
+              <h3 className="text-sm font-bold text-gray-300 tracking-wider mb-6 flex items-center gap-2">
+                <CreditCard size={16} className="text-[#b71928]" /> SUBSCRIPTION & BILLING
+              </h3>
+              
+              <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <div className="p-6 bg-black/40 rounded-xl border border-white/5">
+                  <div className="text-xs font-mono text-gray-500 tracking-widest mb-2">CURRENT PLAN</div>
+                  <div className="text-4xl font-bold font-vox text-white mb-2 uppercase">{profile.role === 'admin' ? "ADMIN" : profile.tier || "STARTER"}</div>
+                  <p className="text-sm text-gray-400 mb-6">You are currently on the {profile.role === 'admin' ? "Admin (Uncapped)" : profile.tier || "Starter"} tier.</p>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-400">Monthly Token Limit</span>
+                      <span className="text-white font-mono">{profile.role === 'admin' ? "Uncapped" : profile.tier === "enterprise" ? "50M" : (profile.tier === "firm" ? "10M" : (profile.tier === "pro" ? "2M" : "100K"))}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-400">Max Context Window</span>
+                      <span className="text-white font-mono">{profile.role === 'admin' ? "Uncapped" : profile.tier === "enterprise" ? "256K" : (profile.tier === "firm" ? "128K" : (profile.tier === "pro" ? "64K" : "32K"))}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-400">Concurrent Agents</span>
+                      <span className="text-white font-mono">{profile.role === 'admin' ? "Unlimited" : profile.tier === "enterprise" ? "Unlimited" : (profile.tier === "firm" ? "25" : (profile.tier === "pro" ? "5" : "1"))}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-400">Token Topup</span>
+                      <span className="text-white font-mono">{profile.role === 'admin' ? "N/A" : "1M tokens / $9.99"}</span>
+                    </div>
+                  </div>
+
+                  <button 
+                    disabled={true}
+                    className="w-full px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded border border-white/10 transition-colors text-sm font-mono tracking-wider"
+                  >
+                    MANAGE BILLING PORTAL
+                  </button>
+                </div>
+
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs font-mono text-gray-500 tracking-widest">AVAILABLE UPGRADES</div>
+                      <div className="bg-white/5 p-0.5 rounded-full border border-white/10 flex">
+                        <button
+                          onClick={() => setIsAnnual(false)}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider transition-colors ${!isAnnual ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                        >
+                          MONTHLY
+                        </button>
+                        <button
+                          onClick={() => setIsAnnual(true)}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wider transition-colors flex items-center gap-1 ${isAnnual ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                        >
+                          ANNUAL
+                          <span className={`text-[8px] px-1 rounded-sm ${isAnnual ? 'bg-black text-[#b71928]' : 'bg-[#b71928] text-white'}`}>-20%</span>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {(!profile.tier || profile.tier === "starter") && (
+                      <div className="p-4 bg-white/[0.02] rounded-xl border border-[#b71928]/30 flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-[#b71928] mb-1 font-vox">PRO TIER</div>
+                          <div className="text-xs text-gray-400">{isAnnual ? "$288.00 / year" : "$29.99 / month"}</div>
+                        </div>
+                        <button 
+                          onClick={() => handleCheckout(isAnnual ? process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_ANNUAL as string : process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO as string)}
+                          disabled={isCheckoutLoading}
+                          className="px-4 py-2 bg-[#b71928] hover:bg-red-600 text-white font-bold rounded text-xs tracking-wider transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {isCheckoutLoading && <Loader2 size={12} className="animate-spin" />}
+                          UPGRADE
+                        </button>
+                      </div>
+                    )}
+
+                    {(!profile.tier || profile.tier === "starter" || profile.tier === "pro") && (
+                      <div className="p-4 bg-white/[0.02] rounded-xl border border-[#b71928]/30 flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-white mb-1 font-vox">FIRM TIER</div>
+                          <div className="text-xs text-gray-400">{isAnnual ? "$1,428.00 / year" : "$149.00 / month"}</div>
+                        </div>
+                        <button 
+                          onClick={() => handleCheckout(isAnnual ? process.env.NEXT_PUBLIC_STRIPE_PRICE_FIRM_ANNUAL as string : process.env.NEXT_PUBLIC_STRIPE_PRICE_FIRM as string)}
+                          disabled={isCheckoutLoading}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded text-xs tracking-wider transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {isCheckoutLoading && <Loader2 size={12} className="animate-spin" />}
+                          UPGRADE
+                        </button>
+                      </div>
+                    )}
+                    
+                    {(!profile.tier || profile.tier !== "enterprise") && (
+                      <div className="p-4 bg-white/[0.02] rounded-xl border border-white/10 flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-gray-300 mb-1 font-vox">ENTERPRISE TIER</div>
+                          <div className="text-xs text-gray-500">{isAnnual ? "$2,868.00 / year" : "$299.00 / month"}</div>
+                        </div>
+                        <button 
+                          onClick={() => handleCheckout(isAnnual ? process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE_ANNUAL as string : process.env.NEXT_PUBLIC_STRIPE_PRICE_ENTERPRISE as string)}
+                          disabled={isCheckoutLoading}
+                          className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-400 font-bold rounded text-xs tracking-wider transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {isCheckoutLoading && <Loader2 size={12} className="animate-spin" />}
+                          UPGRADE
+                        </button>
+                      </div>
+                    )}
+                  </div>
+              </div>
+            </div>
+            
+            {/* Token Topup */}
+            <div className="glass-panel p-6 border-white/10">
+              <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-300 tracking-wider mb-2 flex items-center gap-2">
+                      <CreditCard size={16} className="text-[#b71928]" /> TOKEN TOPUP
+                    </h3>
+                    <p className="text-sm text-gray-400">Add <span className="text-white font-bold">1,000,000 tokens</span> to your account instantly for <span className="text-white font-bold">$9.99</span>.</p>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      setIsCheckoutLoading(true);
+                      try {
+                        const res = await fetch("/api/stripe/topup", { method: "POST" });
+                        const data = await res.json();
+                        if (data.url) window.location.href = data.url;
+                        else alert("Failed: " + data.error);
+                      } catch { alert("Topup failed."); }
+                      finally { setIsCheckoutLoading(false); }
+                    }}
+                    disabled={isCheckoutLoading}
+                    className="px-6 py-3 bg-[#b71928] hover:bg-red-600 text-white font-bold rounded-lg text-xs tracking-wider transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                  >
+                    {isCheckoutLoading && <Loader2 size={12} className="animate-spin" />}
+                    BUY TOKENS
+                  </button>
+              </div>
+            </div>
+
+            <div className="glass-panel p-6 border-white/10">
+              <h3 className="text-sm font-bold text-gray-300 tracking-wider mb-6">BILLING HISTORY</h3>
+              <div className="text-center py-12 text-sm text-gray-500 font-mono">
+                No recent transactions found for this account.
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Curation Modal */}

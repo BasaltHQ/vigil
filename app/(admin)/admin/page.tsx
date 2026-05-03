@@ -8,6 +8,7 @@ interface UserProfile {
   email: string;
   displayName: string | null;
   role: string;
+  tier?: string;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -33,6 +34,12 @@ function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return n.toString();
+}
+
+function estimateCost(promptTokens: number, completionTokens: number): string {
+  // Using gpt-5.4-mini / Kimi-K2.5 base estimate: $0.15 / 1M prompt, $0.60 / 1M completion
+  const cost = (promptTokens / 1_000_000) * 0.15 + (completionTokens / 1_000_000) * 0.60;
+  return `$${cost.toFixed(4)}`;
 }
 
 export default function AdminDashboard() {
@@ -64,7 +71,7 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const updateUser = async (userId: string, updates: { status?: string; role?: string }) => {
+  const updateUser = async (userId: string, updates: { status?: string; role?: string; tier?: string }) => {
     setActionLoading(userId);
     try {
       const res = await fetch("/api/admin/users", {
@@ -201,7 +208,9 @@ export default function AdminDashboard() {
                   <th className="px-5 py-3">Email</th>
                   <th className="px-5 py-3">Role</th>
                   <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Tier</th>
                   <th className="px-5 py-3 text-right">Tokens Used</th>
+                  <th className="px-5 py-3 text-right">Est. Cost</th>
                   <th className="px-5 py-3 text-right">Requests</th>
                   <th className="px-5 py-3">Joined</th>
                   <th className="px-5 py-3 text-right">Actions</th>
@@ -230,8 +239,24 @@ export default function AdminDashboard() {
                         {user.status}
                       </span>
                     </td>
+                    <td className="px-5 py-4">
+                      <select
+                        value={user.tier || "starter"}
+                        onChange={(e) => updateUser(user.id, { tier: e.target.value })}
+                        disabled={actionLoading === user.id}
+                        className="bg-black/20 border border-white/10 rounded px-2 py-1 text-xs text-gray-300 font-mono focus:outline-none focus:border-red-500/50"
+                      >
+                        <option value="starter">STARTER</option>
+                        <option value="pro">PRO</option>
+                        <option value="firm">FIRM</option>
+                        <option value="enterprise">ENTERPRISE</option>
+                      </select>
+                    </td>
                     <td className="px-5 py-4 text-right font-mono text-gray-300">
                       {formatNumber(user.tokenUsage.totalTokens)}
+                    </td>
+                    <td className="px-5 py-4 text-right font-mono text-green-400">
+                      {estimateCost(user.tokenUsage.promptTokens, user.tokenUsage.completionTokens)}
                     </td>
                     <td className="px-5 py-4 text-right font-mono text-gray-500">
                       {user.requestCount}

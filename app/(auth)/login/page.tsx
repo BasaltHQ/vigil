@@ -34,9 +34,11 @@ export default function LoginPage(props: {
 
     // Try to auto-onboard with profile data (social logins)
     const tryOnboard = async () => {
+      let hasEmail = false;
       if (profiles && profiles.length > 0) {
         const emailProfile = profiles.find((p: any) => p.details?.email && p.details?.name) || profiles.find((p: any) => p.details?.email);
         if (emailProfile && emailProfile.details) {
+          hasEmail = true;
           const details = emailProfile.details as any;
           try {
             await fetch("/api/auth/onboarding", {
@@ -50,8 +52,25 @@ export default function LoginPage(props: {
           } catch {}
         }
       }
-      // Always redirect to chat regardless of onboarding result
-      router.push("/chat");
+
+      // Check if user is already fully onboarded
+      try {
+        const res = await fetch("/api/profile");
+        if (res.ok) {
+          const data = await res.json();
+          // If profile exists and is not pending, skip onboarding
+          if (data && data.status !== "pending" && data.email && data.email !== "unknown") {
+             router.push("/chat");
+             return;
+          }
+        }
+      } catch (e) {}
+      
+      if (hasEmail) {
+        router.push("/chat");
+      } else {
+        router.push("/onboarding");
+      }
     };
 
     // For external wallets, profiles may never load — use a short timeout
@@ -59,9 +78,9 @@ export default function LoginPage(props: {
     if (profiles !== undefined) {
       tryOnboard();
     } else {
-      // Give profiles 1.5s to load, then redirect anyway
+      // Give profiles 1.5s to load, then redirect appropriately
       const timer = setTimeout(() => {
-        router.push("/chat");
+        tryOnboard();
       }, 1500);
       return () => clearTimeout(timer);
     }
