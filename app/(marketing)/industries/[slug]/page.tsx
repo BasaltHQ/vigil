@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const industry = getIndustryBySlug(slug);
     if (!industry) return { title: 'Industry Not Found' };
     return {
-        title: \`Agentic AI for \${industry.name} | BasaltVigil\`,
+        title: `Agentic AI for ${industry.name} | BasaltVigil`,
         description: industry.description,
     };
 }

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const term = getCodexTermBySlug(slug);
     if (!term) return { title: 'Term Not Found' };
     return {
-        title: \`\${term.term} | BasaltVigil Codex\`,
+        title: `${term.term} | BasaltVigil Codex`,
         description: term.definition,
     };
 }

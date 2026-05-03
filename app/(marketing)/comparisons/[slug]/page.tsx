@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const comp = getComparisonBySlug(slug);
     if (!comp) return { title: 'Comparison Not Found' };
     return {
-        title: \`BasaltVigil vs \${comp.competitorName} | Agentic Law Comparison\`,
+        title: `BasaltVigil vs ${comp.competitorName} | Agentic Law Comparison`,
         description: comp.description,
     };
 }

@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const loc: any = LOCATIONS.find((l: any) => l.slug === slug);
     if (!loc) return { title: 'Location Not Found' };
     return {
-        title: \`Agentic Legal Infrastructure in \${loc.name}, \${loc.country} | BasaltVigil\`,
-        description: \`Deploy autonomous legal swarms in \${loc.name} with full adherence to local data sovereignty and compliance requirements.\`,
+        title: `Agentic Legal Infrastructure in ${loc.name}, ${loc.country} | BasaltVigil`,
+        description: `Deploy autonomous legal swarms in ${loc.name} with full adherence to local data sovereignty and compliance requirements.`,
     };
 }
 
@@ -38,8 +38,8 @@ export default async function LocationPage({ params }: { params: Promise<{ slug:
             {/* Generative Geographic Background */}
             <div className="absolute top-0 right-0 w-[600px] h-[600px] opacity-10 pointer-events-none"
                 style={{
-                    backgroundImage: \`radial-gradient(circle at center, #b71928 0%, transparent 60%)\`,
-                    backgroundPosition: \`\${Math.abs(loc.lng)}% \${Math.abs(loc.lat)}%\`
+                    backgroundImage: `radial-gradient(circle at center, #b71928 0%, transparent 60%)`,
+                    backgroundPosition: `${Math.abs(loc.lng)}% ${Math.abs(loc.lat)}%`
                 }}
             />
 
