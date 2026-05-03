@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import { prisma } from '@/lib/db';
 import { thirdwebAuth } from '@/lib/auth';
 
-const stripe = new Stripe(process.env.STRIPE_API_KEY as string, {
+const getStripe = () => new Stripe(process.env.STRIPE_API_KEY as string, {
   apiVersion: '2023-10-16' as any,
 });
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     let customerId = (profile as any).stripeCustomerId;
 
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: profile.email || undefined,
         metadata: { userId: profile.id },
       });
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       mode: 'payment',
       payment_method_types: ['card'],
