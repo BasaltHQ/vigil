@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/db';
 
-const stripe = new Stripe(process.env.STRIPE_API_KEY as string, {
+const getStripe = () => new Stripe(process.env.STRIPE_API_KEY as string, {
   apiVersion: '2023-10-16' as any,
 });
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const getWebhookSecret = () => process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -15,9 +15,8 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = getStripe().webhooks.constructEvent(body, signature, getWebhookSecret());
   } catch (err: any) {
-    console.error(`Webhook Error: ${err.message}`);
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
   }
 
