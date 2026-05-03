@@ -33,8 +33,12 @@ export default function SettingsPage() {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   // Tabs
-  const [activeTab, setActiveTab] = useState<"identity" | "billing">("identity");
+  const [activeTab, setActiveTab] = useState<"identity" | "playbook" | "billing">("identity");
   const [isAnnual, setIsAnnual] = useState(true);
+
+  // Playbook State
+  const [playbookText, setPlaybookText] = useState("");
+  const [isUploadingPlaybook, setIsUploadingPlaybook] = useState(false);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -88,6 +92,32 @@ export default function SettingsPage() {
     }
   };
 
+  const handlePlaybookUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setIsUploadingPlaybook(true);
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.url) {
+        const appendedText = playbookText ? `${playbookText}\n\n[Attached Reference: ${data.url}]` : `[Attached Reference: ${data.url}]`;
+        setPlaybookText(appendedText);
+      } else {
+        alert("Upload failed: " + data.error);
+      }
+    } catch (error) {
+      alert("Upload failed.");
+    } finally {
+      setIsUploadingPlaybook(false);
+    }
+  };
+
   useEffect(() => {
     fetch("/api/profile")
       .then(r => r.json())
@@ -98,6 +128,7 @@ export default function SettingsPage() {
         if (data.baseTemplate) setSelectedTemplateKey(data.baseTemplate);
         if (data.docIdTemplate) setDocIdTemplate(data.docIdTemplate);
         if (data.docIdCounter !== undefined) setDocIdCounter(data.docIdCounter);
+        if (data.brandParameters?.customPlaybook) setPlaybookText(data.brandParameters.customPlaybook);
       });
   }, []);
 
@@ -225,6 +256,12 @@ export default function SettingsPage() {
               className={`px-4 py-2 font-mono text-xs tracking-widest rounded-t-lg border-b-2 transition-colors ${activeTab === "identity" ? "border-[#b71928] text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
             >
               IDENTITY
+            </button>
+            <button 
+              onClick={() => setActiveTab("playbook")}
+              className={`px-4 py-2 font-mono text-xs tracking-widest rounded-t-lg border-b-2 transition-colors ${activeTab === "playbook" ? "border-[#b71928] text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
+            >
+              PLAYBOOK
             </button>
             <button 
               onClick={() => setActiveTab("billing")}
@@ -501,6 +538,73 @@ export default function SettingsPage() {
           </div>
         </div>
         </>
+        )}
+
+        {activeTab === "playbook" && (
+          <div className="space-y-8 relative">
+            {profile.tier === 'starter' || profile.tier === 'free' ? (
+              <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/40 rounded-xl border border-white/10">
+                <div className="text-center p-8 bg-[#050505] border border-[#b71928]/30 shadow-[0_0_40px_rgba(183,25,40,0.2)] rounded-2xl max-w-md">
+                  <div className="w-16 h-16 bg-[#b71928]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Target size={32} className="text-[#b71928]" />
+                  </div>
+                  <h3 className="text-xl font-bold font-vox text-white mb-3">Pro Tier Required</h3>
+                  <p className="text-sm text-gray-400 mb-8">
+                    Custom Firm Playbooks allow you to inject proprietary risk tolerances, fallback clauses, and negotiation rules directly into the AI Swarm. Upgrade to unlock this feature.
+                  </p>
+                  <button onClick={() => setActiveTab("billing")} className="glass-button w-full px-6 py-3 bg-[#b71928] text-white hover:bg-red-600 transition-colors font-bold tracking-widest text-sm shadow-[0_0_20px_rgba(183,25,40,0.3)]">
+                    UPGRADE TO PRO
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            <div className={`glass-panel p-6 border-white/10 ${profile.tier === 'starter' || profile.tier === 'free' ? 'opacity-50 pointer-events-none' : ''}`}>
+              <div className="flex justify-between items-start mb-6">
+                <h3 className="text-sm font-bold text-gray-300 tracking-wider flex items-center gap-2">
+                  <Target size={16} className="text-red-400" /> CUSTOM FIRM PLAYBOOK
+                </h3>
+                <div className="flex gap-3">
+                  <label className="glass-button px-4 py-2 bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer flex items-center gap-2 text-xs font-mono tracking-wider border border-white/10">
+                    {isUploadingPlaybook ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    UPLOAD REFERENCE DOC
+                    <input type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={handlePlaybookUpload} disabled={isUploadingPlaybook} />
+                  </label>
+                  <button 
+                    onClick={() => saveSettings({ brandParameters: { ...profile.brandParameters, customPlaybook: playbookText } })}
+                    disabled={isSaving}
+                    className="glass-button px-4 py-2 bg-[#b71928] hover:bg-red-600 text-white transition-colors flex items-center gap-2 text-xs font-mono tracking-wider"
+                  >
+                    {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    SAVE PLAYBOOK
+                  </button>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 mb-6">
+                Define the rules of engagement for your autonomous agents. Paste your firm's standard fallback clauses, negotiation deal-breakers, and risk tolerance matrices here. The AI swarm will strict-enforce these parameters during document redlining and analysis.
+              </p>
+              
+              <div className="relative">
+                <div className="absolute top-0 right-0 px-4 py-2 flex gap-2 border-b border-l border-white/10 bg-[#050505] rounded-bl-lg opacity-50 z-10 pointer-events-none">
+                  <span className="text-[9px] font-mono tracking-widest text-gray-500">SYSTEM PROMPT INJECTION</span>
+                </div>
+                <textarea
+                  value={playbookText}
+                  onChange={(e) => setPlaybookText(e.target.value)}
+                  placeholder="e.g. 1. Mutual Indemnification is required for all vendors.&#10;2. Limitation of Liability must be capped at 12 months fees.&#10;3. Do not accept aggregate liability caps under $1M without VP approval."
+                  className="w-full h-96 bg-[#050505] border border-white/10 rounded-lg p-6 text-sm text-gray-300 font-mono focus:outline-none focus:border-red-500/50 resize-y shadow-inner relative z-0"
+                  style={{ lineHeight: '1.6' }}
+                />
+              </div>
+              
+              <div className="mt-6 p-4 bg-red-900/10 border border-red-900/30 rounded-lg flex items-start gap-3">
+                <Globe size={18} className="text-red-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  <strong className="text-white font-mono">Zero-Retention Notice:</strong> Your custom playbook data is encrypted at rest and dynamically injected into the agentic swarm's context window purely at runtime. None of this data is used to train foundational LLMs or shared across tenants.
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
         {activeTab === "billing" && (

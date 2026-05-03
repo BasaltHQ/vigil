@@ -1,0 +1,58 @@
+[
+  {
+    "name": "London",
+    "country": "GB",
+    "lat": 51.50853,
+    "lng": -0.12574,
+    "slug": "london-gb"
+  },
+  {
+    "name": "Toronto",
+    "country": "CA",
+    "lat": 43.70643,
+    "lng": -79.39864,
+    "slug": "toronto-ca"
+  },
+  {
+    "name": "Washington",
+    "country": "US",
+    "lat": 38.65922,
+    "lng": -87.17279,
+    "slug": "washington-us"
+  },
+  {
+    "name": "Mumbai",
+    "country": "IN",
+    "lat": 19.07283,
+    "lng": 72.88261,
+    "slug": "mumbai-in"
+  },
+  {
+    "name": "Milan",
+    "country": "IT",
+    "lat": 45.46427,
+    "lng": 9.18951,
+    "slug": "milan-it"
+  },
+  {
+    "name": "Abu Dhabi",
+    "country": "AE",
+    "lat": 24.45118,
+    "lng": 54.39696,
+    "slug": "abu-dhabi-ae"
+  },
+  {
+    "name": "Kuala Lumpur",
+    "country": "MY",
+    "lat": 3.1412,
+    "lng": 101.68653,
+    "slug": "kuala-lumpur-my"
+  },
+  {
+    "name": "Bangkok",
+    "country": "TH",
+    "lat": 13.75398,
+    "lng": 100.50144,
+    "slug": "bangkok-th"
+  }
+]

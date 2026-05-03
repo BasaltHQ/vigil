@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import LOCATIONS from '@/lib/data/locations.json';
+import { TOP_JURISDICTIONS } from '@/lib/data/top-jurisdictions';
 import { Metadata } from 'next';
 import { Footer } from '@/app/components/landing/footer';
 
@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function LocationsIndex() {
-    // Only take top 100 or so for the index to avoid massive DOM
-    const displayLocations = LOCATIONS.slice(0, 60);
+    const displayLocations = TOP_JURISDICTIONS;
 
     return (
         <div className="min-h-screen bg-[#050505] text-white selection:bg-[#b71928] selection:text-white font-sans relative overflow-hidden">
@@ -39,7 +38,7 @@ export default function LocationsIndex() {
                 </div>
                 
                 <div className="mt-16 text-center text-sm font-mono text-gray-500">
-                    Showing 60 of {LOCATIONS.length.toLocaleString()} active global edge nodes. Search via programmatic routing.
+                    Showing 60 of 104,176 active global edge nodes. Search via programmatic routing.
                 </div>
             </main>
             <Footer />

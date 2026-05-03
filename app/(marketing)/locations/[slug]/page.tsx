@@ -1,4 +1,5 @@
 import LOCATIONS from '@/lib/data/locations.json';
+import { TOP_JURISDICTIONS } from '@/lib/data/top-jurisdictions';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
@@ -9,14 +10,14 @@ import { Footer } from '@/app/components/landing/footer';
 // for 100k locations might cause out-of-memory or take hours.
 // We'll generate a subset statically, and let the rest be generated on demand (ISR).
 export async function generateStaticParams() {
-    return LOCATIONS.slice(0, 500).map((loc: any) => ({
-        slug: loc.slug,
-    }));
+    const topParams = TOP_JURISDICTIONS.map((loc) => ({ slug: loc.slug }));
+    const restParams = LOCATIONS.slice(0, 500).map((loc: any) => ({ slug: loc.slug }));
+    return [...topParams, ...restParams];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params;
-    const loc: any = LOCATIONS.find((l: any) => l.slug === slug);
+    const loc: any = TOP_JURISDICTIONS.find((l) => l.slug === slug) || LOCATIONS.find((l: any) => l.slug === slug);
     if (!loc) return { title: 'Location Not Found' };
     return {
         title: `Agentic Legal Infrastructure in ${loc.name}, ${loc.country} | BasaltVigil`,
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function LocationPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
-    const loc: any = LOCATIONS.find((l: any) => l.slug === slug);
+    const loc: any = TOP_JURISDICTIONS.find((l) => l.slug === slug) || LOCATIONS.find((l: any) => l.slug === slug);
 
     if (!loc) {
         notFound();

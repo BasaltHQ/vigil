@@ -1,0 +1,422 @@
+[
+  {
+    "name": "Yanchep",
+    "country": "AU",
+    "lat": -31.54678,
+    "lng": 115.63171,
+    "slug": "yanchep-au"
+  },
+  {
+    "name": "Woodville",
+    "country": "AU",
+    "lat": -34.877,
+    "lng": 138.54291,
+    "slug": "woodville-au"
+  },
+  {
+    "name": "Williamstown",
+    "country": "AU",
+    "lat": -34.6721,
+    "lng": 138.89108,
+    "slug": "williamstown-au"
+  },
+  {
+    "name": "Wellard",
+    "country": "AU",
+    "lat": -32.26667,
+    "lng": 115.83333,
+    "slug": "wellard-au"
+  },
+  {
+    "name": "Wanneroo",
+    "country": "AU",
+    "lat": -31.75,
+    "lng": 115.8,
+    "slug": "wanneroo-au"
+  },
+  {
+    "name": "Waggrakine",
+    "country": "AU",
+    "lat": -28.71883,
+    "lng": 114.63924,
+    "slug": "waggrakine-au"
+  },
+  {
+    "name": "Utakarra",
+    "country": "AU",
+    "lat": -28.78333,
+    "lng": 114.65,
+    "slug": "utakarra-au"
+  },
+  {
+    "name": "Tea Tree Gully",
+    "country": "AU",
+    "lat": -34.81667,
+    "lng": 138.73333,
+    "slug": "tea-tree-gully-au"
+  },
+  {
+    "name": "Swanbourne",
+    "country": "AU",
+    "lat": -31.96878,
+    "lng": 115.7673,
+    "slug": "swanbourne-au"
+  },
+  {
+    "name": "Strathalbyn",
+    "country": "AU",
+    "lat": -35.25979,
+    "lng": 138.89247,
+    "slug": "strathalbyn-au"
+  },
+  {
+    "name": "South Perth",
+    "country": "AU",
+    "lat": -31.98333,
+    "lng": 115.86667,
+    "slug": "south-perth-au"
+  },
+  {
+    "name": "Serpentine",
+    "country": "AU",
+    "lat": -32.36051,
+    "lng": 115.97723,
+    "slug": "serpentine-au"
+  },
+  {
+    "name": "Scarborough",
+    "country": "AU",
+    "lat": -31.89578,
+    "lng": 115.76431,
+    "slug": "scarborough-au"
+  },
+  {
+    "name": "Roleystone",
+    "country": "AU",
+    "lat": -32.11458,
+    "lng": 116.0706,
+    "slug": "roleystone-au"
+  },
+  {
+    "name": "Reynella",
+    "country": "AU",
+    "lat": -35.09372,
+    "lng": 138.53082,
+    "slug": "reynella-au"
+  },
+  {
+    "name": "Port Willunga",
+    "country": "AU",
+    "lat": -35.26181,
+    "lng": 138.46436,
+    "slug": "port-willunga-au"
+  },
+  {
+    "name": "Port Lincoln",
+    "country": "AU",
+    "lat": -34.72625,
+    "lng": 135.87442,
+    "slug": "port-lincoln-au"
+  },
+  {
+    "name": "Pinjarra",
+    "country": "AU",
+    "lat": -32.6298,
+    "lng": 115.87351,
+    "slug": "pinjarra-au"
+  },
+  {
+    "name": "Pearce",
+    "country": "AU",
+    "lat": -31.66667,
+    "lng": 116.01667,
+    "slug": "pearce-au"
+  },
+  {
+    "name": "One Tree Hill",
+    "country": "AU",
+    "lat": -34.7,
+    "lng": 138.76667,
+    "slug": "one-tree-hill-au"
+  },
+  {
+    "name": "Normanville",
+    "country": "AU",
+    "lat": -35.44623,
+    "lng": 138.3213,
+    "slug": "normanville-au"
+  },
+  {
+    "name": "Nedlands",
+    "country": "AU",
+    "lat": -31.98184,
+    "lng": 115.8073,
+    "slug": "nedlands-au"
+  },
+  {
+    "name": "Murray Bridge",
+    "country": "AU",
+    "lat": -35.11986,
+    "lng": 139.27345,
+    "slug": "murray-bridge-au"
+  },
+  {
+    "name": "Mount Helena",
+    "country": "AU",
+    "lat": -31.87606,
+    "lng": 116.21025,
+    "slug": "mount-helena-au"
+  },
+  {
+    "name": "Mosman Park",
+    "country": "AU",
+    "lat": -32.00538,
+    "lng": 115.7638,
+    "slug": "mosman-park-au"
+  },
+  {
+    "name": "Middleton",
+    "country": "AU",
+    "lat": -35.51047,
+    "lng": 138.70377,
+    "slug": "middleton-au"
+  },
+  {
+    "name": "Medina",
+    "country": "AU",
+    "lat": -32.23406,
+    "lng": 115.79901,
+    "slug": "medina-au"
+  },
+  {
+    "name": "Maylands",
+    "country": "AU",
+    "lat": -31.93097,
+    "lng": 115.89486,
+    "slug": "maylands-au"
+  },
+  {
+    "name": "Marble Bar",
+    "country": "AU",
+    "lat": -21.17067,
+    "lng": 119.74441,
+    "slug": "marble-bar-au"
+  },
+  {
+    "name": "Maningrida",
+    "country": "AU",
+    "lat": -12.0483,
+    "lng": 134.22941,
+    "slug": "maningrida-au"
+  },
+  {
+    "name": "Macclesfield",
+    "country": "AU",
+    "lat": -35.17182,
+    "lng": 138.83589,
+    "slug": "macclesfield-au"
+  },
+  {
+    "name": "Littlehampton",
+    "country": "AU",
+    "lat": -35.04225,
+    "lng": 138.86423,
+    "slug": "littlehampton-au"
+  },
+  {
+    "name": "Largs Bay",
+    "country": "AU",
+    "lat": -34.82582,
+    "lng": 138.48619,
+    "slug": "largs-bay-au"
+  },
+  {
+    "name": "Kelmscott",
+    "country": "AU",
+    "lat": -32.12434,
+    "lng": 116.0259,
+    "slug": "kelmscott-au"
+  },
+  {
+    "name": "Kapunda",
+    "country": "AU",
+    "lat": -34.33871,
+    "lng": 138.91644,
+    "slug": "kapunda-au"
+  },
+  {
+    "name": "Jarrahdale",
+    "country": "AU",
+    "lat": -32.3358,
+    "lng": 116.05951,
+    "slug": "jarrahdale-au"
+  },
+  {
+    "name": "Hamersley",
+    "country": "AU",
+    "lat": -31.84898,
+    "lng": 115.80757,
+    "slug": "hamersley-au"
+  },
+  {
+    "name": "Guildford",
+    "country": "AU",
+    "lat": -31.9,
+    "lng": 115.96667,
+    "slug": "guildford-au"
+  },
+  {
+    "name": "Grange",
+    "country": "AU",
+    "lat": -34.90223,
+    "lng": 138.49022,
+    "slug": "grange-au"
+  },
+  {
+    "name": "Golden Grove",
+    "country": "AU",
+    "lat": -34.78333,
+    "lng": 138.73333,
+    "slug": "golden-grove-au"
+  },
+  {
+    "name": "Gawler",
+    "country": "AU",
+    "lat": -34.60251,
+    "lng": 138.74902,
+    "slug": "gawler-au"
+  },
+  {
+    "name": "Findon",
+    "country": "AU",
+    "lat": -34.9,
+    "lng": 138.53333,
+    "slug": "findon-au"
+  },
+  {
+    "name": "Dunsborough",
+    "country": "AU",
+    "lat": -33.61476,
+    "lng": 115.10445,
+    "slug": "dunsborough-au"
+  },
+  {
+    "name": "Darlington",
+    "country": "AU",
+    "lat": -35.03151,
+    "lng": 138.55527,
+    "slug": "darlington-au"
+  },
+  {
+    "name": "Craigburn Farm",
+    "country": "AU",
+    "lat": -35.04046,
+    "lng": 138.6049,
+    "slug": "craigburn-farm-au"
+  },
+  {
+    "name": "Cottesloe",
+    "country": "AU",
+    "lat": -31.99426,
+    "lng": 115.75816,
+    "slug": "cottesloe-au"
+  },
+  {
+    "name": "Collie",
+    "country": "AU",
+    "lat": -33.36206,
+    "lng": 116.15617,
+    "slug": "collie-au"
+  },
+  {
+    "name": "Ceduna",
+    "country": "AU",
+    "lat": -32.1266,
+    "lng": 133.67271,
+    "slug": "ceduna-au"
+  },
+  {
+    "name": "Busselton",
+    "country": "AU",
+    "lat": -33.65249,
+    "lng": 115.3455,
+    "slug": "busselton-au"
+  },
+  {
+    "name": "Broome",
+    "country": "AU",
+    "lat": -17.95538,
+    "lng": 122.23922,
+    "slug": "broome-au"
+  },
+  {
+    "name": "Boyanup",
+    "country": "AU",
+    "lat": -33.48295,
+    "lng": 115.72838,
+    "slug": "boyanup-au"
+  },
+  {
+    "name": "Birkenhead",
+    "country": "AU",
+    "lat": -34.83685,
+    "lng": 138.49788,
+    "slug": "birkenhead-au"
+  },
+  {
+    "name": "Belair",
+    "country": "AU",
+    "lat": -34.99766,
+    "lng": 138.62077,
+    "slug": "belair-au"
+  },
+  {
+    "name": "Bassendean",
+    "country": "AU",
+    "lat": -31.90906,
+    "lng": 115.9437,
+    "slug": "bassendean-au"
+  },
+  {
+    "name": "Australind",
+    "country": "AU",
+    "lat": -33.2792,
+    "lng": 115.71504,
+    "slug": "australind-au"
+  },
+  {
+    "name": "Applecross",
+    "country": "AU",
+    "lat": -32.01667,
+    "lng": 115.83333,
+    "slug": "applecross-au"
+  },
+  {
+    "name": "Aldgate",
+    "country": "AU",
+    "lat": -35.01667,
+    "lng": 138.73333,
+    "slug": "aldgate-au"
+  },
+  {
+    "name": "Binningup",
+    "country": "AU",
+    "lat": -33.1483,
+    "lng": 115.69519,
+    "slug": "binningup-au"
+  },
+  {
+    "name": "Quinns Rocks",
+    "country": "AU",
+    "lat": -31.67379,
+    "lng": 115.70372,
+    "slug": "quinns-rocks-au"
+  },
+  {
+    "name": "Bicton",
+    "country": "AU",
+    "lat": -32.02778,
+    "lng": 115.78333,
+    "slug": "bicton-au"
+  }
+]
