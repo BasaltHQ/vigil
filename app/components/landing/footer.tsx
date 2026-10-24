@@ -18,8 +18,8 @@ export function Footer() {
               <div className="relative w-8 h-8">
                 <Image src="/Vigil.png" alt="Vigil Logo" fill className="object-contain" />
               </div>
-              <span className="text-xl tracking-widest text-gray-200 font-vox">
-                <span className="font-light">BASALT</span><span className="font-bold">VIGIL</span>
+              <span className="basalt-wordmark text-xl tracking-widest text-gray-200" style={{ fontFamily: '"BasaltVox", "vox", sans-serif', fontSynthesis: 'none' }}>
+                <span className="basalt-wordmark-base" style={{ fontWeight: 300 }}>BASALT</span><span className="basalt-wordmark-product" style={{ fontWeight: 700 }}>VIGIL</span>
               </span>
             </Link>
             <p className="text-gray-500 text-sm mb-6 max-w-xs leading-relaxed">
@@ -86,7 +86,7 @@ export function Footer() {
           <p className="text-gray-600 text-xs">
             © {new Date().getFullYear()} Vigil Platform by BasaltHQ. All rights reserved.
           </p>
-          <div className="flex gap-6 text-xs font-mono">
+          <div className="flex flex-wrap justify-center gap-6 text-xs font-mono">
             <Link href="/blog" className="text-gray-600 hover:text-white transition-colors">BLOG</Link>
             <Link href="/codex" className="text-gray-600 hover:text-white transition-colors">CODEX</Link>
             <Link href="/industries" className="text-gray-600 hover:text-white transition-colors">INDUSTRIES</Link>

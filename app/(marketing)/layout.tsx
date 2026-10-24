@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Navbar } from "../components/landing/navbar";
+import { LegacyMarketingChrome, LegacyPageFrame } from "../components/basalt-marketing/LegacyMarketingChrome";
 
 export const metadata: Metadata = {
   title: "BasaltVigil | Advanced Legal AI Swarm Intelligence",
@@ -50,10 +51,10 @@ export default function MarketingLayout({
 }>) {
   return (
     <>
-      <Navbar />
-      <main className="min-h-screen">
+      <LegacyMarketingChrome><Navbar /></LegacyMarketingChrome>
+      <LegacyPageFrame className="min-h-screen">
         {children}
-      </main>
+      </LegacyPageFrame>
     </>
   );
 }

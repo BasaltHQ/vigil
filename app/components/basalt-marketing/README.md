@@ -1,0 +1,49 @@
+# Basalt marketing system
+
+The landing pages share Surge's layout rhythm, warm surfaces, spacing, navigation, and conversion flow. Seven applications have distinct scroll-directed worlds. Their materials and craftsmanship belong to one family, while their subjects, settings, actions, and camera tracks differ. Surge retains the exclusive video treatment.
+
+This directory is the canonical source, mirrored by `node scripts/sync-basalt-marketing.cjs`. The script copies shared components, VOX fonts, original shields, and the flight environment to each appropriate repository; page entry points and application shells remain separate. `--check` verifies byte equality without writes. `--site=onyx` limits either operation to one destination. Surge receives only the ecosystem inventory and existing common brand assets.
+
+## Active films
+
+`scene-renderer.ts` loads `experience-renderer.js`. The renderer uses real perspective geometry, authored camera tracks, physical materials, shadows, ambient occlusion, restrained bloom, and ACES output. Each builder owns its architecture and environment settings. `flight-kit.js` provides construction helpers and materials; only CRM invokes its monumental cliff archive. Static architecture is batched, repeated vegetation is instanced, and animated objects preserve their own hierarchies.
+
+| Product | World and physical narrative | Module |
+| --- | --- | --- |
+| CRM | The Letter That Learned to Fly: a customer question leaves the cliff archive, gathers context at a separate tower, crosses the cloud gap into a review conservatory, and meets a reply from a distant beacon. | experience-editorial.js |
+| Onyx | The Observatory of Voices: an original idea enters an optical instrument; its iris focuses; audience editions rise into view; the oculus opens. | experience-editorial.js |
+| CMS | The Impossible Book: a clothbound book opens into an attached paper composition, unfolds its story, and presents format proofs. | experience-editorial.js |
+| HQ | The Living Atlas: monumental doors open into a garden city; grounded paths join its districts; the camera moves toward a central portal. | experience-operations.js |
+| ERP | The Grand Waterworks: a waterwheel drives a resource through a supported conveyor, a route switch, and a precise receiving cradle. | experience-operations.js |
+| Echo | The Listening Well: a request travels as water waves through context reeds; the room listens; an answering wave returns to its origin. | experience-intelligence.js |
+| Vigil | The Evidence Vault: a monumental archive indexes three source folios; supported carriers extend them through the vault for inspection; the dossier rises and opens; lattice gates preserve the sources. | experience-intelligence.js |
+
+Each builder returns `update(progress,time)`, `camera(progress)`, four stages, a title, and optional environment settings. Progress owns every meaningful action, so reverse scrolling reconstructs the earlier state. Ambient time affects small secondary motions only. Camera tracks ease through explicit story holds. Each hero uses an authored establishing pose rather than autoplaying all four chapters; the pinned story lets the reader advance the action.
+
+CRM's flight is authored in `crm-flight-motion.js`. Its four destinations are separated by 130–159 world units, with roughly 530 units of actual travel. The camera looks ahead across the gaps and circles the conservatory exit. Heading and pitch follow the path tangent; banking anticipates its curvature. The light's direction stays constant while its shadow volume follows the journey. Context sheets gather at their tower and travel with the original letter. CurvePath parameters are clamped at the review boundary to avoid floating-point overshoot.
+
+Physical sequences give the other worlds motion beyond the camera: Onyx indexes exposures and raises editions in order; CMS unfolds its roof, format proofs, and pavilion doors; HQ opens district shutters after its bridges land and unfolds its conservatory crown; ERP secures its cargo before the routing turn and releases it before delivery; Echo shapes the request and reply through supported acoustic mechanisms; Vigil indexes its archive, retrieves each folio, presents the dossier, and closes its protective gates. HQ's portal sign is mounted above and forward of the arch on separate braced posts.
+
+The local generated texture `public/basalt-flight/aerial-world-v1.png` supplies CRM's distant spherical sky and reflected light. CRM is the only world that loads this panorama or uses a cloud sea. HQ uses a procedural sky over its grounded city; the other worlds have their own enclosed settings. Foreground architecture, subjects, folds, supports, paths, gates, and their parallax are real geometry. The backdrop is not video. Its exact built-in imagegen prompt and source record are in `docs/marketing/crm-flight-direction/environment-prompt.txt` in the CRM repository. A procedural atmosphere remains available if loading fails. Asset completion wakes paused/reduced-motion scenes once. Late completion after disposal releases the texture.
+
+Scenes initialize when first visible and stop rendering offscreen or when the document is hidden. Pause freezes both ambient time and scroll state. Reduced motion selects four still poses; `WorldFallback.tsx` provides distinct chapter-specific SVG illustrations when graphics contexts are unavailable or lost. Desktop and mobile receive different lens framing. Rendering is capped at 1.7 million pixels on desktop and 650,000 on mobile, with the shared 45/30 fps scheduling limits. The bundled Three r184 runtime and license let each repository build independently.
+
+## Verification and preview
+
+`node scripts/check-basalt-experiences.cjs` compiles the active renderer in Edge and checks all seven products at desktop/mobile widths. It captures four distinct nonuniform rendered poses, finite camera/narrative state, a draw budget, exact state reversal, reduced-motion time stability, independent physical action at a fixed camera, and safe repeated disposal. Pixel equality permits at most 16 isolated color channels differing by one unit out of 255, to accommodate ANGLE quantization without allowing visible motion. `BASALT_CHECK_SITE`, `BASALT_CHECK_WIDTH`, `BASALT_CHECK_HEIGHT`, and `BASALT_CAPTURE_DIR` narrow the audit or choose its outputs. Inspect the actual screenshots as well as the assertions, including intermediate camera positions when a track passes architecture.
+
+Set `BASALT_CHECK_PROGRESS` to a comma-separated list of progress values from 0 to 1 to capture additional intermediate poses. Product-scoped runs write separate reports so they do not overwrite the full seven-product report. `node scripts/check-basalt-flight-clearance.cjs` samples 2,001 CRM poses, tests the moving correspondence's padded bounding volumes against the actual static architecture triangles, and checks flight/camera continuity on both sides of phase boundaries. It also guards the distance between the four destinations. It includes the complete wings, context sheets, draft, and reply; rendered screenshots remain necessary to review composition and camera occlusion.
+
+`node scripts/check-basalt-marketing.cjs` renders the actual landing components and original footers with local framework wrappers, checking typography, shield assets, chapter scrubbing, pause/reduced motion, fallback art, responsive layouts, navigation, accessibility, and HQ's embedded/standalone portal. It does not start application workers, run migrations, authenticate users, or connect to production databases. `--serve` keeps a family design review running; `BASALT_REVIEW_PORT` selects its port. Use each application's own server for live backend workflows.
+
+Earlier elemental, kinetic, cinematic, character-rig, and all-flight prototypes are retained for reference. The active CRM builder reuses its letter choreography from `flight-editorial.js`; the other active builders are independent of those prototypes. Earlier regression scripts do not validate the current seven worlds.
+
+## Brand and application shell
+
+Company wordmarks retain the original VOX typeface: light (300) for BASALT and bold (700) for the product name. Shared landing wordmarks use the namespaced `BasaltVox` family to prevent legacy site font registrations from substituting weights. The exact font files used by Surge and Onyx are hosted locally in each app's `public/fonts` directory and verified by the sync script. Body and interface typography remain in the shared sans-serif system.
+
+Every ecosystem card uses its actual shield and the same two-weight VOX wordmark. `ecosystem.ts` owns the product IDs and local shield paths; `public/basalt-shields` contains the existing brand artwork, mirrored into all eight repositories by the sync script. These are the original assets, not letter badges or recolored approximations. Header shields use the same inventory. Next Image provides size-appropriate delivery in production. Preserve these shield and typography conventions when adding products.
+
+Each site retains its previous footer, including its links, content, and layout. Page-owned footers are supplied through `BasaltLanding`'s `footer` slot, which renders outside the shared CSS scope. HQ and ERP retain their layout-owned footers. Onyx supplies a render function so its original footer motion control shares the hero's pause state.
+
+BasaltHQ supplies its existing `PortalSection` through the `portal` slot immediately after the hero. Keep its app launcher, sign-in controls, and dedicated `/portal` route when editing the landing. The embedded heading uses `h2`; the standalone portal retains `h1`. Native section styles preserve the portal's layout while avoiding shared typography overrides. The design review fixture renders the actual portal and its sign-in UI in an anonymous state; live authentication requires the HQ app's existing API routes.
