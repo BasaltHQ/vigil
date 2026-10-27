@@ -1754,6 +1754,28 @@ export default function Home() {
                                         </div>
                                       );
                                     }
+                                    if (href?.toLowerCase().endsWith('.docx')) {
+                                      const downloadUrl = href?.startsWith('http') ? href : `/api/artifacts/file?path=${encodeURIComponent(href)}`;
+                                      return (
+                                        <a
+                                          href={downloadUrl}
+                                          download
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="cursor-pointer block mt-3 mb-3 p-4 bg-blue-950/20 border border-blue-700/30 rounded-lg max-w-sm group hover:bg-blue-900/30 transition-all no-underline shadow-lg shadow-blue-950/10"
+                                        >
+                                          <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-blue-900/20 rounded-md text-blue-400 group-hover:bg-blue-800/40 group-hover:text-white transition-colors">
+                                              <Download size={22} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <h4 className="text-sm font-semibold text-blue-100 truncate w-full">{children || 'Download Word Redline'}</h4>
+                                              <div className="text-[10px] text-blue-400/80 font-mono mt-1 uppercase tracking-widest">Word (.DOCX) Track Changes Ready</div>
+                                            </div>
+                                          </div>
+                                        </a>
+                                      );
+                                    }
                                     return (
                                       <a href={href} target="_blank" rel="noopener noreferrer" className="text-white hover:underline decoration-gray-500 underline-offset-4">
                                         {children}
@@ -1825,7 +1847,7 @@ export default function Home() {
                     multiple 
                     className="hidden" 
                     onChange={handleFileChange} 
-                    accept="image/*,application/pdf,text/plain"
+                    accept="image/*,application/pdf,text/plain,.docx,.md,.csv,.json,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   />
                   <button
                     type="button"

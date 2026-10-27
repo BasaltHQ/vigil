@@ -221,7 +221,10 @@ export default function SettingsPage() {
       latex = latex.replace(/\[COVER_IMAGE_BLOCK\]/g, coverImageBlock);
       latex = latex.replace(/\[DISPLAY_ID\]/g, "PREVIEW-0000");
       latex = latex.replace(/\[TITLE\]/g, "Document Layout Preview");
-      latex = latex.replace(/\[SECTIONS_CONTENT\]/g, "\\section*{1. Sample Section}\nThis is a demonstration of how the layout structure handles standard paragraphs and typography.\n\n\\section*{2. Formatting Test}\nAnother section to test spacing.");
+      const sampleSectionsLatex = key === "redline_comparison"
+        ? "\\section*{1. Mutual Indemnification \\hfill {\\small\\textcolor{RedlineDel}{[CRITICAL --- PRIMARY POSITION]}}}\nEach Party shall \\textcolor{RedlineDel}{\\sout{solely and unconditionally}} \\textcolor{RedlineIns}{\\uline{mutually}} indemnify, defend, and hold harmless the other Party from third-party claims \\textcolor{RedlineIns}{\\uline{proximately caused by gross negligence or willful misconduct}}.\\\\[0.6em]\n\\noindent\\textbf{\\textcolor{RationaleGray}{[Counsel Note]:}} {\\itshape\\textcolor{RationaleGray}{Converted unilateral indemnity to mutual protection per Firm Playbook Rule 1.}}"
+        : "\\section*{1. Sample Section}\nThis is a demonstration of how the layout structure handles standard paragraphs and typography.\n\n\\section*{2. Formatting Test}\nAnother section to test spacing.";
+      latex = latex.replace(/\[SECTIONS_CONTENT\]/g, sampleSectionsLatex);
       latex = latex.replace(/\[SIGNATURES_CONTENT\]/g, "\\noindent\n\\textbf{\\textcolor{BrandPrimary}{SAMPLE ENTITY}}\\\\[1em]\n\\hrulefill \\\\\n\\textbf{John Doe}, CEO\n");
       latex = latex.replace(/\[MEMO_HEADERS\]/g, "\\begin{tabular}{@{}ll}\n\\textbf{TO:} & All Employees \\\\\n\\textbf{FROM:} & Management \\\\\n\\textbf{DATE:} & \\today \\\\\n\\textbf{SUBJECT:} & Template Preview \\\\\n\\end{tabular}\n");
 

@@ -136,6 +136,7 @@ export async function POST(req: Request) {
     const availableAgents = ['Archer', 'Bannister', 'Cairo', 'Gittes', 'Gutman', 'Hammer', 'Marlowe', 'Neff', 'Ohara', 'Queen', 'Spade', 'Vance'];
     systemPrompt += `\n\nSYSTEM NOTICE: You have the ability to hand off tasks to the following specialist agents: ${availableAgents.join(', ')}. If you need specialist input, YOU MUST route the document to them immediately.`;
 
+    let customPlaybookContext = "";
     if (userId !== 'anonymous') {
       try {
         const profile = await (prisma as any).profile.findUnique({ where: { id: userId } });
@@ -145,6 +146,10 @@ export async function POST(req: Request) {
             if (profile.brandParameters) {
               systemPrompt += `\nTone of Voice: ${profile.brandParameters.tone || 'Professional'}`;
               systemPrompt += `\nKey Offerings: ${profile.brandParameters.offerings?.join(', ') || 'N/A'}`;
+              if (profile.brandParameters.customPlaybook) {
+                customPlaybookContext = `\n\n[FIRM NEGOTIATION PLAYBOOK & MANDATORY RULES]\nThe user has configured the following Firm Playbook. You MUST strictly enforce these risk tolerances, fallback clauses, and deal-breakers when reviewing, auditing, or redlining any contract:\n${profile.brandParameters.customPlaybook}\n[END FIRM PLAYBOOK]`;
+                systemPrompt += customPlaybookContext;
+              }
             }
             if (profile.brandAssets) {
               systemPrompt += `\nPrimary Color: ${profile.brandAssets.colors?.primary || 'N/A'}`;
@@ -156,7 +161,7 @@ export async function POST(req: Request) {
             }
           }
           if (profile.baseTemplate) {
-            systemPrompt += `\n\n[BASE DOCUMENT TEMPLATE]\nThe user has selected the following base template for formal corporate documents: ${profile.baseTemplate}. When drafting LaTeX documents, you should instruct the compilation tool to use this template if applicable (by passing it as the template_name parameter), or heavily base your LaTeX output on the structure commonly associated with ${profile.baseTemplate}.`;
+            systemPrompt += `\n\n[BASE DOCUMENT TEMPLATE]\nThe user has selected the following base template for formal corporate documents: ${profile.baseTemplate}. When drafting LaTeX documents, you should instruct the compilation tool to use this template if applicable (by passing it as the layout_style parameter), or heavily base your LaTeX output on the structure commonly associated with ${profile.baseTemplate}.`;
           }
         }
       } catch (e) {
@@ -180,7 +185,7 @@ export async function POST(req: Request) {
 
       if (mCopy.role === 'user' && mCopy.content) {
         const textContent = typeof mCopy.content === 'string' ? mCopy.content : (mCopy.parts ? mCopy.parts.filter((p:any) => p.type === 'text').map((p:any) => p.text).join('\n') : '');
-        const docMatch = textContent.match(/\[The following documents were uploaded by the user:\]\n\n([\s\S]*?)(?=\n\n\[End of attached documents\]|$)/);
+        const docMatch = textContent.match(/\[The following documents were uploaded by the user(?:\s+for\s+analysis)?:\]\s*([\s\S]*?)(?=\n\n\[End of attached documents\]|$)/);
         if (docMatch && docMatch[1].length > 500) {
           extractedDocumentText += `\n\n--- UPLOADED DOCUMENT ---\n${docMatch[1]}\n--- END DOCUMENT ---\n`;
           // Replace the massive blob with a lightweight reference
@@ -205,18 +210,24 @@ export async function POST(req: Request) {
     console.log("[DEBUG] optimizedMessages:", JSON.stringify(optimizedMessages, null, 2));
 
     const runtimeTools: any = { ...allSpecialistTools };
+    const specialistSubTools: any = { ...allSpecialistTools };
+    delete specialistSubTools.handoff_to_agent;
+    delete specialistSubTools.ask_human;
+    delete specialistSubTools.terminate_conversation;
+
     runtimeTools.handoff_to_agent = tool({
-      description: "Hand off a task to a specialist agent in the swarm. They will process it and return their detailed opinion to you.",
+      description: "Hand off a task to a specialist agent in the swarm. They have full access to Vigil's specialist legal tools (redlining, due diligence, cap table modeling, SEC EDGAR, Bluebook verification, IP clearance, etc.) and will return their detailed opinion and generated artifacts to you.",
       parameters: z.object({
-        agent_name: z.string().describe("Name of the agent to hand off to (e.g., Holmes, Archer, Bannister, etc.)"),
+        agent_name: z.string().describe("Name of the agent to hand off to (e.g., Holmes, Archer, Bannister, Gittes, Queen, Spade, Hammer, Gutman, Vance, etc.)"),
         next_task: z.string().describe("Clear description of the task the agent needs to perform.")
       }),
       execute: async (args: any) => {
         const { agent_name, next_task } = args;
         console.log(`[Handoff] ${orchestratorName} handing off to ${agent_name}`);
         try {
-          // The specialist also needs the extracted document context!
+          // The specialist also needs the extracted document context and firm playbook!
           let specialistPrompt = loadAgentInstructions(agent_name, String(swarm_id) || 'corporate');
+          if (customPlaybookContext) specialistPrompt += `\n\n${customPlaybookContext}`;
           if (extractedDocumentText) specialistPrompt += `\n\n${extractedDocumentText}`;
 
           const cleanHistory = optimizedMessages.map((m: any) => ({
@@ -224,14 +235,20 @@ export async function POST(req: Request) {
             content: typeof m.content === 'string' ? m.content : (m.parts ? m.parts.filter((p:any) => p.type === 'text').map((p:any) => p.text).join('\n') : '')
           }));
           
-          const { text, usage: handoffUsage } = await generateText({
+          const { text, usage: handoffUsage, steps: specialistSteps } = await generateText({
             model: patchedAzure.chat(process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-5.4-mini'),
             messages: [
               ...cleanHistory, 
-              { role: 'user', content: `[ORCHESTRATOR INSTRUCTION]: ${next_task}\n\nPlease perform this task and return a detailed report.` }
+              { role: 'user', content: `[ORCHESTRATOR INSTRUCTION]: ${next_task}\n\nPlease perform this task using your specialist tools if appropriate and return a detailed report (including any markdown links to PDFs/DOCX files you generated).` }
             ],
             system: specialistPrompt,
+            tools: specialistSubTools,
+            stopWhen: stepCountIs(5),
           });
+
+          const executedSpecialistTools = (specialistSteps || []).flatMap((s: any) =>
+            (s.toolCalls || []).map((tc: any) => tc.toolName)
+          );
 
           // Track specialist agent token usage
           if (handoffUsage && userId !== 'anonymous') {
@@ -246,13 +263,18 @@ export async function POST(req: Request) {
                   totalTokens: ((handoffUsage as any).inputTokens || (handoffUsage as any).promptTokens || 0) + ((handoffUsage as any).outputTokens || (handoffUsage as any).completionTokens || 0),
                 },
               });
-              console.log(`[Handoff] ${agent_name} tokens: ${JSON.stringify(handoffUsage)}`);
+              console.log(`[Handoff] ${agent_name} tokens: ${JSON.stringify(handoffUsage)}, tools: [${executedSpecialistTools}]`);
             } catch (e) {
               console.error(`[Handoff TokenUsage] Failed to record for ${agent_name}:`, e);
             }
           }
 
-          return { status: "success", target_agent: agent_name, specialist_report: text };
+          return {
+            status: "success",
+            target_agent: agent_name,
+            tools_executed_by_specialist: executedSpecialistTools,
+            specialist_report: text
+          };
         } catch (e: any) {
           console.error(`[Handoff Error] Failed to execute handoff to ${agent_name}:`, e);
           return { status: "failed", error: e.message || String(e) };
@@ -265,7 +287,7 @@ export async function POST(req: Request) {
       messages: await convertToModelMessages(optimizedMessages),
       system: systemPrompt,
       tools: runtimeTools,
-      stopWhen: stepCountIs(10),
+      stopWhen: stepCountIs(12),
       onStepFinish: async (step) => {
         const calls = (step.toolCalls || []).map((tc: any) => tc.toolName);
         const results = (step.toolResults || []).map((tr: any) => tr.toolName);

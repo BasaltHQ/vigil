@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { TerminalSquare, FileText, Users, Wrench, Shield, Settings, Menu, X } from "lucide-react";
+import { TerminalSquare, Sparkles, FileText, Users, Wrench, Shield, Settings, Menu, X } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { client } from "@/lib/thirdweb";
 import { inAppWallet } from "thirdweb/wallets";
@@ -73,6 +73,7 @@ export default function Navigation() {
 
   const navItems = [
     { name: "CONSOLE", href: "/chat", icon: TerminalSquare },
+    { name: "CONSOLE V2", href: "/console-v2", icon: Sparkles },
     { name: "DOCUMENTS", href: "/documents", icon: FileText },
     { name: "AGENTS", href: "/agents", icon: Users },
     { name: "TOOLS", href: "/tools", icon: Wrench },

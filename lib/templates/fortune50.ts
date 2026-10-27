@@ -860,5 +860,151 @@ REF: [DISPLAY_ID] \\quad|\\quad \\today
 [SIGNATURES_CONTENT]
 
 \\end{document}`
+  },
+  redline_comparison: {
+    name: "Redline / Blackline Comparison",
+    description: "Institutional track-changes blackline layout displaying deleted text in crimson strikethrough, added text in royal blue underline, and inline counsel commentary.",
+    latex: `\\documentclass[10pt,letterpaper]{article}
+\\usepackage[top=0.6in, bottom=0.8in, left=0.85in, right=0.85in, includehead, headheight=40pt, headsep=10pt]{geometry}
+\\usepackage{helvet}
+\\renewcommand{\\familydefault}{\\sfdefault}
+\\usepackage{graphicx}
+\\usepackage{fancyhdr}
+\\usepackage{xcolor}
+\\usepackage[normalem]{ulem}
+\\usepackage{tabularx}
+\\usepackage{booktabs}
+\\usepackage{sectsty}
+\\usepackage{parskip}
+
+\\definecolor{BrandPrimary}{HTML}{[BRAND_PRIMARY]}
+\\definecolor{BrandSecondary}{HTML}{[BRAND_SECONDARY]}
+\\definecolor{RedlineDel}{HTML}{B91C1C}
+\\definecolor{RedlineIns}{HTML}{1D4ED8}
+\\definecolor{RationaleGray}{HTML}{374151}
+\\sectionfont{\\color{BrandPrimary}}
+
+\\pagestyle{fancy}
+\\fancyhf{}
+\\fancyhead[L]{[COMPANY_HEADER]}
+\\fancyhead[R]{\\small\\textbf{\\textcolor{RedlineDel}{REDLINE COMPARISON}} \\quad|\\quad \\textcolor{BrandSecondary}{[DISPLAY_ID]}}
+\\fancyfoot[L]{\\small\\textcolor{RedlineDel}{\\sout{Deleted Text}} \\quad \\textcolor{RedlineIns}{\\uline{Inserted Text}}}
+\\fancyfoot[C]{\\small Page \\thepage}
+\\fancyfoot[R]{\\small ATTORNEY WORK PRODUCT}
+\\renewcommand{\\headrulewidth}{0.5pt}
+\\renewcommand{\\footrulewidth}{0.3pt}
+
+\\begin{document}
+
+\\begin{titlepage}
+\\thispagestyle{empty}
+\\noindent
+[COMPANY_HEADER] \\\\
+\\vspace{1.2cm}
+
+\\noindent\\textcolor{BrandPrimary}{\\rule{\\textwidth}{3pt}} \\\\
+\\vspace{0.4cm}
+\\begin{flushleft}
+{\\small\\textbf{\\textcolor{RedlineDel}{CONFIDENTIAL COUNSEL REDLINE / BLACKLINE}}} \\\\[0.5em]
+{\\Huge\\textbf{\\textcolor{BrandPrimary}{[TITLE]}}} \\\\[0.8em]
+{\\LARGE\\textbf{\\textcolor{BrandSecondary}{[COMPANY_NAME]}}} \\\\
+\\vspace{1.2cm}
+[COVER_IMAGE_BLOCK]
+\\end{flushleft}
+
+\\vspace{1cm}
+\\noindent
+\\textbf{REDLINE NOTATION LEGEND:} \\\\[0.5em]
+\\begin{tabular}{@{}ll@{}}
+\\textcolor{RedlineDel}{\\sout{Strikethrough Crimson Text}} & Indicates language deleted from counterparty/base draft. \\\\[0.3em]
+\\textcolor{RedlineIns}{\\uline{Underlined Royal Blue Text}} & Indicates new protective language inserted by counsel. \\\\[0.3em]
+\\textbf{\\textcolor{RationaleGray}{[Counsel Note]}} & Explains the legal risk mitigation and playbook rationale. \\\\
+\\end{tabular}
+
+\\vfill
+\\noindent\\textcolor{BrandSecondary}{\\small REF: [DISPLAY_ID] \\hfill GENERATED: \\today}
+\\end{titlepage}
+
+\\newpage
+\\setcounter{page}{1}
+
+[SECTIONS_CONTENT]
+
+\\vspace{3em}
+\\noindent\\textcolor{BrandPrimary}{\\rule{\\textwidth}{1pt}}
+\\vspace{2em}
+
+\\noindent
+[SIGNATURES_CONTENT]
+
+\\end{document}`
+  },
+  diligence_report: {
+    name: "Executive Due Diligence & Risk Matrix",
+    description: "Structured BigLaw diligence report layout for M&A red-flag audits, contract playbook evaluations, privilege logs, and regulatory compliance matrices.",
+    latex: `\\documentclass[10pt,letterpaper]{article}
+\\usepackage[top=0.6in, bottom=0.8in, left=0.8in, right=0.8in, includehead, headheight=40pt, headsep=10pt]{geometry}
+\\usepackage{helvet}
+\\renewcommand{\\familydefault}{\\sfdefault}
+\\usepackage{graphicx}
+\\usepackage{fancyhdr}
+\\usepackage{xcolor}
+\\usepackage{tabularx}
+\\usepackage{longtable}
+\\usepackage{booktabs}
+\\usepackage{sectsty}
+\\usepackage{enumitem}
+\\usepackage{parskip}
+
+\\definecolor{BrandPrimary}{HTML}{[BRAND_PRIMARY]}
+\\definecolor{BrandSecondary}{HTML}{[BRAND_SECONDARY]}
+\\definecolor{RiskHigh}{HTML}{B91C1C}
+\\definecolor{RiskMed}{HTML}{D97706}
+\\definecolor{RiskLow}{HTML}{059669}
+\\sectionfont{\\color{BrandPrimary}}
+
+\\pagestyle{fancy}
+\\fancyhf{}
+\\fancyhead[L]{[COMPANY_HEADER]}
+\\fancyhead[R]{\\small\\textcolor{BrandSecondary}{PRIVILEGED \\& CONFIDENTIAL --- [DISPLAY_ID]}}
+\\fancyfoot[L]{\\small [COMPANY_NAME]}
+\\fancyfoot[C]{\\small Page \\thepage}
+\\fancyfoot[R]{\\small LEGAL AUDIT REPORT}
+\\renewcommand{\\headrulewidth}{0.4pt}
+\\renewcommand{\\footrulewidth}{0.2pt}
+
+\\begin{document}
+
+\\begin{titlepage}
+\\thispagestyle{empty}
+\\noindent
+[COMPANY_HEADER] \\\\
+\\vspace{1.5cm}
+
+\\noindent\\textcolor{BrandPrimary}{\\rule{\\textwidth}{3pt}} \\\\
+\\vspace{0.4cm}
+\\begin{flushleft}
+{\\small\\textbf{\\textcolor{RiskHigh}{ATTORNEY-CLIENT PRIVILEGED / WORK PRODUCT}}} \\\\[0.6em]
+{\\Huge\\textbf{\\textcolor{BrandPrimary}{[TITLE]}}} \\\\[0.8em]
+{\\Large\\textbf{\\textcolor{BrandSecondary}{Prepared for [COMPANY_NAME]}}} \\\\
+\\vspace{1cm}
+[MEMO_HEADERS]
+\\vspace{1cm}
+[COVER_IMAGE_BLOCK]
+\\end{flushleft}
+\\vfill
+\\noindent\\textcolor{BrandSecondary}{\\small REF: [DISPLAY_ID] \\hfill DATE: \\today}
+\\end{titlepage}
+
+\\newpage
+\\setcounter{page}{1}
+
+[SECTIONS_CONTENT]
+
+\\vspace{3em}
+\\noindent
+[SIGNATURES_CONTENT]
+
+\\end{document}`
   }
 };

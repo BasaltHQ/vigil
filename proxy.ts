@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getAuthRedirectUrl } from "./lib/auth-redirect";
 
 export default function proxy(request: NextRequest) {
   const token = request.cookies.get("thirdweb_auth_token");
@@ -15,16 +16,12 @@ export default function proxy(request: NextRequest) {
 
   // If user is NOT logged in and trying to access protected routes, redirect to login
   if (!isAuthenticated && isProtectedRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(getAuthRedirectUrl(request, '/login'));
   }
 
   // If user IS logged in and visits login or register, redirect to chat
   if (isAuthenticated && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/chat';
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(getAuthRedirectUrl(request, '/chat'));
   }
 
   return NextResponse.next();

@@ -82,20 +82,28 @@ export default function ToolWorkbench() {
     setIsExecuting(true);
     
     try {
-      // Mock execution - replace with actual API call
+      const res = await fetch("/api/tools", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool_name: selectedTool.name,
+          parameters: toolParams,
+        }),
+      });
+      const data = await res.json();
+      const isSuccess = res.ok && data.status !== "error";
+
       const execution: ToolExecution = {
         id: `exec-${Date.now()}`,
         tool_name: selectedTool.name,
         parameters: { ...toolParams },
-        result: {
-          message: `Successfully executed ${selectedTool.name}`,
-          data: { example: "result data" }
-        },
-        status: "success",
+        result: data.result || data,
+        status: isSuccess ? "success" : "error",
         timestamp: new Date().toISOString(),
       };
       
       setExecutions(prev => [execution, ...prev]);
+      fetchTools();
     } catch (error) {
       const execution: ToolExecution = {
         id: `exec-${Date.now()}`,
@@ -123,6 +131,12 @@ export default function ToolWorkbench() {
   // Get category icon
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, string> = {
+      redlining: "🖍️",
+      diligence: "🛡️",
+      corporate: "📊",
+      litigation: "🏛️",
+      ip_compliance: "🔐",
+      firm_ops: "⏱️",
       navigation: "🧭",
       document: "📄",
       research: "🔍",
@@ -130,6 +144,7 @@ export default function ToolWorkbench() {
       transaction: "💼",
       governance: "🏛️",
       utility: "🔧",
+      workflow: "⚡",
       preset: "🤖",
     };
     return icons[category] || "📦";

@@ -10,8 +10,22 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "../db";
 import { FORTUNE_50_TEMPLATES } from "../templates/fortune50";
 import { cookies } from "next/headers";
-import { buildSectionsLatex, buildSignaturesLatex, buildMemoHeadersLatex } from './latex-helpers';
+import {
+  buildSectionsLatex,
+  buildSignaturesLatex,
+  buildMemoHeadersLatex,
+  computeWordDiff,
+  buildRedlineLatexFromDiff,
+  escapeLatexText,
+} from "./latex-helpers";
 import { thirdwebAuth } from "../auth";
+import { compileStructuredLatexDocument } from "./compile_helper";
+import { redlineTools } from "./redline_tools";
+import { dueDiligenceTools } from "./due_diligence_tools";
+import { corporateTools } from "./corporate_tools";
+import { litigationTools } from "./litigation_tools";
+import { ipComplianceTools } from "./ip_compliance_tools";
+import { firmOperationsTools } from "./firm_operations_tools";
 
 const execAsync = promisify(exec);
 
@@ -308,18 +322,106 @@ export const csdpTools = {
         title: s.title,
         status: s.status,
         owner: s.owner,
-        length: s.content.length
+        length: s.content.length,
+        pending_redlines_count: (s.pending_redlines || []).length,
       }));
       return { success: true, result: { title: doc.title, sections: outline, global_context: doc.context } };
     }
   }),
-  compile_live_document: tool({
-    description: "Compile the CSDP into a final PDF/Docx",
+  propose_csdp_redline: tool({
+    description: "Submit a proposed redline revision (with counsel rationale and risk severity) to a specific section of a live CSDP document without overwriting committed text.",
     parameters: z.object({
-      document_id: z.string()
+      document_id: z.string(),
+      section_title: z.string(),
+      proposed_content: z.string().describe("Full proposed replacement text for the section"),
+      rationale: z.string().describe("Counsel rationale and playbook justification for this redline"),
+      risk_severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).default("HIGH"),
+      author_agent: z.string().default("Bannister")
     }),
     execute: async (args: any) => {
-      const { document_id } = args;
+      const { document_id, section_title, proposed_content, rationale, risk_severity, author_agent } = args;
+      const doc = activeDocuments.get(document_id);
+      if (!doc) return { success: false, error: "Document not found." };
+
+      const section = doc.sections.find((s: any) => s.title === section_title);
+      if (!section) return { success: false, error: `Section '${section_title}' not found.` };
+
+      if (!section.pending_redlines) section.pending_redlines = [];
+      const diff = computeWordDiff(section.content || "", proposed_content);
+      const redlineId = `rl-${section.pending_redlines.length + 1}`;
+      section.pending_redlines.push({
+        redline_id: redlineId,
+        author_agent,
+        original_content: section.content || "",
+        proposed_content,
+        rationale,
+        risk_severity,
+        stats: diff.stats,
+        status: "pending"
+      });
+      section.status = "redline_pending";
+
+      return {
+        success: true,
+        redline_id: redlineId,
+        section_title,
+        diff_stats: diff.stats,
+        message: `Redline ${redlineId} proposed on '${section_title}' (+${diff.stats.wordsAdded}/-${diff.stats.wordsDeleted} words).`
+      };
+    }
+  }),
+  resolve_csdp_redlines: tool({
+    description: "Accept or reject pending redline revisions on a live CSDP document section.",
+    parameters: z.object({
+      document_id: z.string(),
+      section_title: z.string(),
+      action: z.enum(["ACCEPT_LATEST", "REJECT_ALL"]),
+      resolution_note: z.string().optional()
+    }),
+    execute: async (args: any) => {
+      const { document_id, section_title, action, resolution_note } = args;
+      const doc = activeDocuments.get(document_id);
+      if (!doc) return { success: false, error: "Document not found." };
+
+      const section = doc.sections.find((s: any) => s.title === section_title);
+      if (!section) return { success: false, error: `Section '${section_title}' not found.` };
+
+      const pending = section.pending_redlines || [];
+      if (pending.length === 0) {
+        return { success: true, message: `No pending redlines on '${section_title}'.` };
+      }
+
+      const latest = pending[pending.length - 1];
+      if (action === "ACCEPT_LATEST") {
+        section.previous_content = section.content;
+        section.content = latest.proposed_content;
+        latest.status = "accepted";
+        latest.resolution_note = resolution_note || "Accepted by Orchestrator";
+        section.status = "committed";
+      } else {
+        for (const r of pending) {
+          r.status = "rejected";
+          r.resolution_note = resolution_note || "Rejected by Orchestrator";
+        }
+        section.status = "committed";
+      }
+
+      return {
+        success: true,
+        section_title,
+        action_taken: action,
+        message: `Pending redlines on '${section_title}' resolved (${action}).`
+      };
+    }
+  }),
+  compile_live_document: tool({
+    description: "Compile the CSDP into a final PDF/Markdown (supports clean compilation or track-changes redline PDF compilation)",
+    parameters: z.object({
+      document_id: z.string(),
+      compile_mode: z.enum(["clean_pdf", "redline_pdf", "markdown_only"]).default("clean_pdf")
+    }),
+    execute: async (args: any) => {
+      const { document_id, compile_mode = "clean_pdf" } = args;
       const doc = activeDocuments.get(document_id);
       if (!doc) return { success: false, error: "Document not found." };
       
@@ -328,6 +430,32 @@ export const csdpTools = {
       const mdContent = doc.sections.map((s: any) => `# ${s.title}\n\n${s.content}`).join('\n\n');
       const filePath = path.join(outDir, `${document_id}.md`);
       await fs.writeFile(filePath, mdContent);
+
+      if (compile_mode === "redline_pdf") {
+        let rawSectionsLatex = "";
+        for (const s of doc.sections) {
+          const latestRedline = (s.pending_redlines || [])[s.pending_redlines?.length - 1];
+          const orig = s.previous_content !== undefined ? s.previous_content : (latestRedline ? latestRedline.original_content : s.content);
+          const rev = latestRedline && latestRedline.status === "pending" ? latestRedline.proposed_content : s.content;
+          const diff = computeWordDiff(orig || "", rev || "");
+          rawSectionsLatex += `\\section*{${escapeLatexText(s.title)}}\n${buildRedlineLatexFromDiff(diff.segments)}\\\\[1em]\n`;
+        }
+        const pdfRes = await compileStructuredLatexDocument({
+          title: `${doc.title} (CSDP Redline)`,
+          layoutStyle: "redline_comparison",
+          rawSectionsLatex,
+          documentType: "csdp_redline"
+        });
+        return { success: true, markdown_url: `/docs/${document_id}.md`, ...pdfRes };
+      } else if (compile_mode === "clean_pdf") {
+        const pdfRes = await compileStructuredLatexDocument({
+          title: doc.title,
+          layoutStyle: "modern_dual_column",
+          sections: doc.sections.map((s: any) => ({ heading: s.title, content: s.content || "" })),
+          documentType: doc.document_type || "csdp_compiled"
+        });
+        return { success: true, markdown_url: `/docs/${document_id}.md`, ...pdfRes };
+      }
       
       return { success: true, file_url: `/docs/${document_id}.md` };
     }
@@ -378,7 +506,7 @@ export const workflowTools = {
     description: "Draft a highly structured, presentation-grade legal or corporate document using an abstract Fortune 50 layout. This safely bridges the gap between your legal reasoning and perfect LaTeX typography.",
     parameters: z.object({
       title: z.string().describe("The official title of the document"),
-      layout_style: z.enum(['modern_dual_column', 'strict_legal_watermark', 'corporate_governance', 'internal_memo', 'mutual_nda', 'term_sheet_financial', 'employment_offer', 'founder_equity_grid', 'safe_agreement', 'ip_assignment', 'operating_agreement', 'consulting_agreement', 'board_resolution', 'convertible_note', 'privacy_policy']),
+      layout_style: z.enum(['modern_dual_column', 'strict_legal_watermark', 'corporate_governance', 'internal_memo', 'mutual_nda', 'term_sheet_financial', 'employment_offer', 'founder_equity_grid', 'safe_agreement', 'ip_assignment', 'operating_agreement', 'consulting_agreement', 'board_resolution', 'convertible_note', 'privacy_policy', 'redline_comparison', 'diligence_report']),
       sections: z.array(z.object({
         heading: z.string().describe("Section heading (e.g., '1. Confidential Information')"),
         content: z.string().describe("The full text of the section. Use standard text, do not use raw LaTeX commands here.")
@@ -614,5 +742,11 @@ export const allSpecialistTools = {
   ...secEdgarTools,
   ...legalResearchTools,
   ...csdpTools,
-  ...workflowTools
+  ...workflowTools,
+  ...redlineTools,
+  ...dueDiligenceTools,
+  ...corporateTools,
+  ...litigationTools,
+  ...ipComplianceTools,
+  ...firmOperationsTools,
 };
