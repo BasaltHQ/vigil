@@ -13,8 +13,16 @@ export const maxDuration = 300;
 
 // Pre-compute correct JSON schemas from Zod (workaround for @ai-sdk/azure serialization bug)
 // AI SDK v6 tool().parameters is a raw Zod schema — use zodSchema() to get proper JSON Schema
+const handoffToolParameters = z.object({
+  agent_name: z.string().describe("Name of the agent to hand off to (e.g., Holmes, Archer, Bannister, Gittes, Queen, Spade, Hammer, Gutman, Vance, etc.)"),
+  next_task: z.string().describe("Clear description of the task the agent needs to perform.")
+});
+
 const correctSchemas: Record<string, any> = {};
-for (const [name, t] of Object.entries(allSpecialistTools) as [string, any][]) {
+for (const [name, t] of [
+  ...Object.entries(allSpecialistTools),
+  ['handoff_to_agent', { parameters: handoffToolParameters }],
+] as [string, any][]) {
   if (t.parameters) {
     try {
       const wrapped = zodSchema(t.parameters);
@@ -32,7 +40,8 @@ console.log(`[Vigil] Pre-computed ${Object.keys(correctSchemas).length} tool sch
 const instructionsDir = process.cwd() + '/lib/agents/instructions';
 
 function loadAgentInstructions(agentName: string, swarmId: string): string {
-  const name = agentName.toLowerCase();
+  const safeAgentName = agentName || 'Keyes';
+  const name = safeAgentName.toLowerCase();
   // Try swarm-specific directory first (e.g. criminal/holmes.md), then root (keyes.md)
   const candidates = [
     path.join(instructionsDir, swarmId, `${name}.md`),
@@ -42,13 +51,13 @@ function loadAgentInstructions(agentName: string, swarmId: string): string {
     try {
       if (fs.existsSync(filePath)) {
         const content = fs.readFileSync(filePath, 'utf-8');
-        console.log(`[Vigil] Loaded instructions for ${agentName} from ${path.basename(filePath)} (${content.length} chars)`);
+        console.log(`[Vigil] Loaded instructions for ${safeAgentName} from ${path.basename(filePath)} (${content.length} chars)`);
         return content;
       }
     } catch { }
   }
   // Fallback
-  return `You are ${agentName}, the Lead Orchestrator of the Vigil legal platform's ${swarmId} swarm. You coordinate legal tasks across your specialist agent team. You have deep expertise in legal analysis, research, document drafting, and case strategy. Respond in a professional, thorough manner.`;
+  return `You are ${safeAgentName}, the Lead Orchestrator of the Vigil legal platform's ${swarmId} swarm. You coordinate legal tasks across your specialist agent team. You have deep expertise in legal analysis, research, document drafting, and case strategy. Respond in a professional, thorough manner.`;
 }
 
 // Patch the broken serialization before it reaches Azure by using a custom fetch
@@ -103,21 +112,30 @@ export async function POST(req: Request) {
       return '';
     };
 
-    // Persist the latest user message
+    // Persist the latest user message (resilient against stale/missing conversation_id)
     const lastUserMsg = [...messages].reverse().find((m: any) => m.role === 'user');
     if (lastUserMsg && conversation_id) {
-      await prisma.message.create({
-        data: {
-          conversationId: String(conversation_id),
-          role: 'user',
-          content: getMessageText(lastUserMsg),
-          metadata: { swarm_id: String(swarm_id) },
-        },
-      });
-      await prisma.conversation.update({
-        where: { id: String(conversation_id) },
-        data: { updatedAt: new Date() },
-      });
+      try {
+        await prisma.conversation.upsert({
+          where: { id: String(conversation_id) },
+          update: { updatedAt: new Date() },
+          create: {
+            id: String(conversation_id),
+            title: getMessageText(lastUserMsg).slice(0, 80) || `Session ${new Date().toLocaleString()}`,
+            userId: userId !== 'anonymous' ? userId : null,
+          },
+        });
+        await prisma.message.create({
+          data: {
+            conversationId: String(conversation_id),
+            role: 'user',
+            content: getMessageText(lastUserMsg),
+            metadata: { swarm_id: String(swarm_id) },
+          },
+        });
+      } catch (dbErr) {
+        console.warn('[Vigil] Non-fatal DB error persisting user message:', dbErr);
+      }
     }
 
     const orchestrators: Record<string, string> = {
@@ -129,12 +147,34 @@ export async function POST(req: Request) {
       personal_injury: 'House',
       real_estate: 'Earp',
     };
+    const swarmSpecialistRosters: Record<string, string[]> = {
+      corporate: ['Archer', 'Bannister', 'Cairo', 'Gittes', 'Gutman', 'Hammer', 'Marlowe', 'Neff', 'Ohara', 'Queen', 'Spade', 'Vance'],
+      criminal: ['Poirot', 'Marple', 'Columbo', 'Perry', 'McCoy', 'Wolfe', 'Morse', 'Chan', 'Dupin', 'Brown'],
+      family: ['Eyre', 'Earnshaw', 'Dashwood', 'March', 'Rochester', 'Woodhouse', 'Darcy', 'Knightley', 'Ferrars', 'Brandon', 'Tilney'],
+      immigration: ['Magellan', 'Columbus', 'Darwin', 'Earhart', 'Shackleton', 'Cook', 'Vespucci', 'Drake', 'Livingstone', 'Hudson', 'Lewis'],
+      real_estate: ['Hickok', 'Oakley', 'Cody', 'Cassidy', 'Holliday', 'Masterson', 'Garrett', 'Horn', 'Starr', 'James', 'Younger'],
+      ip_entertainment: ['Goldwyn', 'Mayer', 'Zanuck', 'Warner', 'Thalberg', 'Cohn', 'Laemmle', 'Zukor', 'Fox', 'Disney', 'Universal'],
+      personal_injury: ['Grey', 'Welby', 'Quincy', 'Trapper', 'Kildare', 'Pierce', 'Carter', 'Ross', 'Shepherd', 'Kovac', 'Greene'],
+    };
     const orchestratorName = orchestrators[String(swarm_id)] || 'Keyes';
     let systemPrompt = loadAgentInstructions(orchestratorName, String(swarm_id) || 'corporate');
     
-    // Inject the roster of available agents so the orchestrator knows who it can route to
-    const availableAgents = ['Archer', 'Bannister', 'Cairo', 'Gittes', 'Gutman', 'Hammer', 'Marlowe', 'Neff', 'Ohara', 'Queen', 'Spade', 'Vance'];
-    systemPrompt += `\n\nSYSTEM NOTICE: You have the ability to hand off tasks to the following specialist agents: ${availableAgents.join(', ')}. If you need specialist input, YOU MUST route the document to them immediately.`;
+    const availableAgents = swarmSpecialistRosters[String(swarm_id)] || swarmSpecialistRosters.corporate;
+    const amlawToolProtocol = `\n\n[AMLAW 10 TOOL SUITE & DELIVERABLE PROTOCOL]
+You and your specialist agents have direct execution access to Vigil's AmLaw 10 legal tool suites:
+1. REDLINING & TRACK CHANGES: \`redline_document\` (compiles BOTH a Fortune 50 Redline PDF and a native Microsoft Word .docx Track-Changes file), \`compare_document_versions\`, \`generate_clean_execution_version\`.
+2. DUE DILIGENCE & PLAYBOOKS: \`extract_and_audit_clauses\`, \`evaluate_against_playbook\`, \`generate_diligence_red_flag_report\`, \`manage_closing_checklist\`.
+3. CORPORATE & VENTURE FINANCE: \`model_cap_table_and_dilution\`, \`model_liquidation_waterfall\`, \`calculate_vesting_and_83b\`, \`prepare_sec_form_d_and_blue_sky\`.
+4. LITIGATION & TRIAL PREP: \`verify_and_format_bluebook_citations\`, \`generate_privilege_log\`, \`calculate_litigation_deadlines\`, \`draft_examination_outline\`.
+5. IP, PRIVACY & COMPLIANCE: \`run_trademark_clearance_analysis\`, \`generate_patent_claim_chart\`, \`generate_privacy_ropa_and_dpia\`, \`run_aml_kyc_and_cta_audit\`.
+6. FIRM OPERATIONS & BILLING: \`generate_legal_invoice_and_roi\` (with UTBMS & LEDES 1998B export), \`stage_esignature_execution_packet\`, \`draft_structured_document\`.
+
+CRITICAL RULE: Whenever a tool returns a \`pdf_file_url\`, \`docx_file_url\`, or \`file_url\`, you MUST include the exact Markdown link(s) in your response to the user (e.g., \`[Download Redline PDF](/docs/...)\` and \`[Download Word (.docx) Redline](/docs/...)\`) so the interactive deliverable cards render in the console.`;
+
+    systemPrompt += `\n\nSYSTEM NOTICE: You have the ability to hand off tasks to the following specialist agents: ${availableAgents.join(', ')}. You may also execute specialist tools directly when speed or precision requires it.${amlawToolProtocol}`;
+    if (context?.jurisdiction || context?.matter_type) {
+      systemPrompt += `\n\n[ACTIVE MATTER CONTEXT]\nJurisdiction: ${context.jurisdiction || 'US Federal / Delaware'}\nMatter Type: ${context.matter_type || 'General Legal Matter'}`;
+    }
 
     let customPlaybookContext = "";
     if (userId !== 'anonymous') {
@@ -210,23 +250,17 @@ export async function POST(req: Request) {
     console.log("[DEBUG] optimizedMessages:", JSON.stringify(optimizedMessages, null, 2));
 
     const runtimeTools: any = { ...allSpecialistTools };
-    const specialistSubTools: any = { ...allSpecialistTools };
-    delete specialistSubTools.handoff_to_agent;
-    delete specialistSubTools.ask_human;
-    delete specialistSubTools.terminate_conversation;
 
     runtimeTools.handoff_to_agent = tool({
-      description: "Hand off a task to a specialist agent in the swarm. They have full access to Vigil's specialist legal tools (redlining, due diligence, cap table modeling, SEC EDGAR, Bluebook verification, IP clearance, etc.) and will return their detailed opinion and generated artifacts to you.",
-      parameters: z.object({
-        agent_name: z.string().describe("Name of the agent to hand off to (e.g., Holmes, Archer, Bannister, Gittes, Queen, Spade, Hammer, Gutman, Vance, etc.)"),
-        next_task: z.string().describe("Clear description of the task the agent needs to perform.")
-      }),
+      description: "Hand off a task to a specialist agent in the swarm. They will return their detailed opinion to you.",
+      parameters: handoffToolParameters,
       execute: async (args: any) => {
-        const { agent_name, next_task } = args;
-        console.log(`[Handoff] ${orchestratorName} handing off to ${agent_name}`);
+        const { agent_name, next_task } = args || {};
+        const targetAgent = agent_name || 'Archer';
+        console.log(`[Handoff] ${orchestratorName} handing off to ${targetAgent}`);
         try {
           // The specialist also needs the extracted document context and firm playbook!
-          let specialistPrompt = loadAgentInstructions(agent_name, String(swarm_id) || 'corporate');
+          let specialistPrompt = loadAgentInstructions(targetAgent, String(swarm_id) || 'corporate');
           if (customPlaybookContext) specialistPrompt += `\n\n${customPlaybookContext}`;
           if (extractedDocumentText) specialistPrompt += `\n\n${extractedDocumentText}`;
 
@@ -235,20 +269,14 @@ export async function POST(req: Request) {
             content: typeof m.content === 'string' ? m.content : (m.parts ? m.parts.filter((p:any) => p.type === 'text').map((p:any) => p.text).join('\n') : '')
           }));
           
-          const { text, usage: handoffUsage, steps: specialistSteps } = await generateText({
+          const { text, usage: handoffUsage } = await generateText({
             model: patchedAzure.chat(process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-5.4-mini'),
             messages: [
               ...cleanHistory, 
-              { role: 'user', content: `[ORCHESTRATOR INSTRUCTION]: ${next_task}\n\nPlease perform this task using your specialist tools if appropriate and return a detailed report (including any markdown links to PDFs/DOCX files you generated).` }
+              { role: 'user', content: `[ORCHESTRATOR INSTRUCTION]: ${next_task || 'Analyze the user matter and provide your specialist legal opinion.'}\n\nPlease perform this task and return a detailed report.` }
             ],
             system: specialistPrompt,
-            tools: specialistSubTools,
-            stopWhen: stepCountIs(5),
           });
-
-          const executedSpecialistTools = (specialistSteps || []).flatMap((s: any) =>
-            (s.toolCalls || []).map((tc: any) => tc.toolName)
-          );
 
           // Track specialist agent token usage
           if (handoffUsage && userId !== 'anonymous') {
@@ -263,20 +291,19 @@ export async function POST(req: Request) {
                   totalTokens: ((handoffUsage as any).inputTokens || (handoffUsage as any).promptTokens || 0) + ((handoffUsage as any).outputTokens || (handoffUsage as any).completionTokens || 0),
                 },
               });
-              console.log(`[Handoff] ${agent_name} tokens: ${JSON.stringify(handoffUsage)}, tools: [${executedSpecialistTools}]`);
+              console.log(`[Handoff] ${targetAgent} tokens: ${JSON.stringify(handoffUsage)}`);
             } catch (e) {
-              console.error(`[Handoff TokenUsage] Failed to record for ${agent_name}:`, e);
+              console.error(`[Handoff TokenUsage] Failed to record for ${targetAgent}:`, e);
             }
           }
 
           return {
             status: "success",
-            target_agent: agent_name,
-            tools_executed_by_specialist: executedSpecialistTools,
+            target_agent: targetAgent,
             specialist_report: text
           };
         } catch (e: any) {
-          console.error(`[Handoff Error] Failed to execute handoff to ${agent_name}:`, e);
+          console.error(`[Handoff Error] Failed to execute handoff to ${targetAgent}:`, e);
           return { status: "failed", error: e.message || String(e) };
         }
       }
@@ -287,7 +314,7 @@ export async function POST(req: Request) {
       messages: await convertToModelMessages(optimizedMessages),
       system: systemPrompt,
       tools: runtimeTools,
-      stopWhen: stepCountIs(12),
+      stopWhen: stepCountIs(10),
       onStepFinish: async (step) => {
         const calls = (step.toolCalls || []).map((tc: any) => tc.toolName);
         const results = (step.toolResults || []).map((tr: any) => tr.toolName);
@@ -321,15 +348,19 @@ export async function POST(req: Request) {
       onFinish: async ({ text, steps, usage }) => {
         console.log(`[Finish] text="${text?.substring(0, 200)}", steps=${steps?.length || 0}, tokens=${JSON.stringify(usage)}`);
         if (conversation_id && text) {
-          await prisma.message.create({
-            data: {
-              conversationId: String(conversation_id),
-              role: 'assistant',
-              content: text,
-              agentName: orchestratorName,
-              metadata: { swarm_id: String(swarm_id) },
-            },
-          });
+          try {
+            await prisma.message.create({
+              data: {
+                conversationId: String(conversation_id),
+                role: 'assistant',
+                content: text,
+                agentName: orchestratorName,
+                metadata: { swarm_id: String(swarm_id) },
+              },
+            });
+          } catch (dbErr) {
+            console.warn('[Vigil] Non-fatal DB error persisting assistant message:', dbErr);
+          }
         }
 
         // Track token usage per user

@@ -22,10 +22,18 @@ export async function GET() {
   try {
     const userId = await getAuthUserId();
 
-    const documents = await (prisma as any).document.findMany({
-      where: { userId },
+    let documents = await (prisma as any).document.findMany({
+      where: userId === 'default_user' ? {} : { userId },
       orderBy: { createdAt: 'desc' },
     });
+
+    // If user has no documents under their exact ID yet, check if anonymous/default_user docs exist
+    if (documents.length === 0 && userId !== 'default_user') {
+      documents = await (prisma as any).document.findMany({
+        where: { userId: { in: ['anonymous', 'default_user'] } },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     return NextResponse.json({ documents });
   } catch (error: any) {
@@ -41,6 +49,7 @@ export async function POST(req: Request) {
     const document = await (prisma as any).document.create({
       data: {
         userId,
+        displayId: body.displayId || null,
         conversationId: body.conversationId || null,
         title: body.title,
         documentType: body.documentType || 'general',
@@ -53,6 +62,19 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ document });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const { id } = await req.json();
+    if (!id) {
+      return NextResponse.json({ error: 'Document id required' }, { status: 400 });
+    }
+    await (prisma as any).document.delete({ where: { id } });
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

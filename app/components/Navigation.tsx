@@ -14,6 +14,7 @@ export default function Navigation() {
   const [currentTime, setCurrentTime] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [displayName, setDisplayName] = useState<string>("");
+  const [subscriptionTier, setSubscriptionTier] = useState<string>("STARTER");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const account = useActiveAccount();
@@ -32,13 +33,13 @@ export default function Navigation() {
         const res = await fetch("/api/profile");
         if (res.ok) {
           const data = await res.json();
-          // If the profile endpoint returns unauthorized or an error, data.role will be undefined.
           if (data.error) {
              setIsAdmin(false);
              setDisplayName("");
           } else {
              setIsAdmin(data.role === "admin");
              setDisplayName(data.displayName || account?.address?.slice(0, 8) + "..." || "User");
+             setSubscriptionTier((data.subscriptionTier || "starter").toUpperCase());
           }
         } else {
           setIsAdmin(false);
@@ -72,12 +73,11 @@ export default function Navigation() {
   };
 
   const navItems = [
-    { name: "CONSOLE", href: "/chat", icon: TerminalSquare },
-    { name: "CONSOLE V2", href: "/console-v2", icon: Sparkles },
-    { name: "DOCUMENTS", href: "/documents", icon: FileText },
-    { name: "AGENTS", href: "/agents", icon: Users },
-    { name: "TOOLS", href: "/tools", icon: Wrench },
-    { name: "SETTINGS", href: "/settings", icon: Settings },
+    { name: "CONSOLE", href: "/chat", icon: TerminalSquare, match: ["/chat", "/console-v2"] },
+    { name: "DOCUMENTS", href: "/documents", icon: FileText, match: ["/documents"] },
+    { name: "AGENTS", href: "/agents", icon: Users, match: ["/agents"] },
+    { name: "TOOLS", href: "/tools", icon: Wrench, match: ["/tools"] },
+    { name: "SETTINGS", href: "/settings", icon: Settings, match: ["/settings"] },
   ];
 
   return (
@@ -97,21 +97,24 @@ export default function Navigation() {
 
             {/* Desktop Nav Items */}
             <div className="hidden lg:flex items-center gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 ${pathname === item.href
-                    ? "glass-panel bg-white/10 text-white border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                    : "hover:bg-white/10 text-gray-300 hover:text-white border border-transparent"
-                    }`}
-                >
-                  <span className={`transition-opacity ${pathname === item.href ? "opacity-100" : "opacity-70"}`}>
-                    <item.icon size={18} />
-                  </span>
-                  <span className={`microtext text-xs tracking-wider font-bold ${pathname === item.href ? "text-white" : "text-gray-400 group-hover:text-white"}`}>{item.name}</span>
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const isActive = item.match.includes(pathname);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 ${isActive
+                      ? "glass-panel bg-white/10 text-white border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                      : "hover:bg-white/10 text-gray-300 hover:text-white border border-transparent"
+                      }`}
+                  >
+                    <span className={`transition-opacity ${isActive ? "opacity-100 text-red-400" : "opacity-70"}`}>
+                      <item.icon size={17} />
+                    </span>
+                    <span className={`microtext text-xs tracking-wider font-bold ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>{item.name}</span>
+                  </Link>
+                );
+              })}
 
               {isAdmin && (
                 <Link
@@ -121,7 +124,7 @@ export default function Navigation() {
                     : "hover:bg-red-900/10 text-red-500/70 hover:text-red-400 border border-transparent"
                     }`}
                 >
-                  <Shield size={18} />
+                  <Shield size={17} />
                   <span className="microtext text-xs tracking-wider font-bold">ADMIN</span>
                 </Link>
               )}
@@ -129,30 +132,35 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Right Side */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-5">
             <div className="flex items-center gap-2">
               <div className="status-dot status-online" />
-              <span className="microtext-label">SYSTEM ONLINE</span>
+              <span className="microtext-label">AMLAW 10 ONLINE</span>
             </div>
 
             <div className="glass-divider h-6" />
 
-            <div className="microtext-label">
+            <div className="microtext-label font-mono">
               {currentTime || <span className="invisible">00:00:00</span>}
             </div>
 
             <div className="glass-divider h-6" />
 
-            <div className="flex flex-col items-end">
-              <span className="text-xs font-bold tracking-wider text-gray-200">
-                {displayName}
+            <div className="flex items-center gap-3">
+              <span className="px-2 py-0.5 rounded bg-amber-950/30 border border-amber-500/30 text-[9px] font-mono font-bold text-amber-400 tracking-widest">
+                {subscriptionTier}
               </span>
-              <button
-                onClick={handleSignOut}
-                className="text-[10px] text-red-500 hover:text-red-400 uppercase tracking-wider font-bold transition-colors"
-              >
-                SIGN OUT
-              </button>
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-bold tracking-wider text-gray-200">
+                  {displayName}
+                </span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-[10px] text-red-500 hover:text-red-400 uppercase tracking-wider font-bold transition-colors"
+                >
+                  SIGN OUT
+                </button>
+              </div>
             </div>
           </div>
 
@@ -174,19 +182,22 @@ export default function Navigation() {
       {mobileMenuOpen && (
         <div className="lg:hidden absolute top-full left-0 right-0 z-50 glass-panel bg-black/95 backdrop-blur-xl border-b border-white/10 shadow-2xl animate-slide-up">
           <div className="p-4 space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${pathname === item.href
-                  ? "bg-white/10 text-white border border-white/20"
-                  : "text-gray-300 hover:bg-white/5 border border-transparent"
-                  }`}
-              >
-                <item.icon size={20} />
-                <span className="text-sm font-bold tracking-wider">{item.name}</span>
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isActive = item.match.includes(pathname);
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
+                    ? "bg-white/10 text-white border border-white/20"
+                    : "text-gray-300 hover:bg-white/5 border border-transparent"
+                    }`}
+                >
+                  <item.icon size={20} />
+                  <span className="text-sm font-bold tracking-wider">{item.name}</span>
+                </Link>
+              );
+            })}
 
             {isAdmin && (
               <Link

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 export interface Message {
   id: string;
@@ -71,7 +71,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     }
   }, [conversationId, messages]);
 
-  const loadConversation = async (newConversationId: string) => {
+  const loadConversation = useCallback(async (newConversationId: string) => {
     // Load messages from localStorage first
     const savedMessages = localStorage.getItem(`messages_${newConversationId}`);
     if (savedMessages) {
@@ -100,9 +100,9 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Failed to load conversation from backend:', error);
     }
-  };
+  }, []);
 
-  const createNewConversation = async () => {
+  const createNewConversation = useCallback(async () => {
     try {
       const response = await fetch("/api/conversations", {
         method: "POST",
@@ -114,16 +114,22 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const result = await response.json();
-        const conversationId = result.data.id;
-        setConversationId(conversationId);
+        const newId = result.data.id;
+        setConversationId(newId);
         setMessages([]);
-        return conversationId;
+        return newId;
       }
     } catch (error) {
       console.error("Failed to create conversation:", error);
     }
-    return null;
-  };
+    const fallbackId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `conv-${Date.now()}`;
+    setConversationId(fallbackId);
+    setMessages([]);
+    return fallbackId;
+  }, []);
 
   return (
     <ConversationContext.Provider value={{

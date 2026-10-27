@@ -28,6 +28,13 @@ async function getAdminUser() {
   return profile;
 }
 
+const TIER_MONTHLY_PRICING: Record<string, number> = {
+  starter: 0,
+  pro: 29.99,
+  firm: 149.0,
+  enterprise: 299.0,
+};
+
 export async function GET() {
   const admin = await getAdminUser();
   if (!admin) {
@@ -36,19 +43,23 @@ export async function GET() {
 
   try {
     const [
-      totalUsers,
-      activeUsers,
-      pendingUsers,
+      profiles,
       totalConversations,
       totalMessages,
+      totalDocuments,
+      pdfDocuments,
+      docxDocuments,
       tokenAggregation,
       recentUsage,
     ] = await Promise.all([
-      (prisma as any).profile.count(),
-      (prisma as any).profile.count({ where: { status: 'active' } }),
-      (prisma as any).profile.count({ where: { status: 'pending' } }),
+      (prisma as any).profile.findMany({
+        select: { status: true, role: true, tier: true },
+      }),
       prisma.conversation.count(),
       prisma.message.count(),
+      (prisma as any).document.count(),
+      (prisma as any).document.count({ where: { format: 'pdf' } }),
+      (prisma as any).document.count({ where: { format: 'docx' } }),
       (prisma as any).tokenUsage.aggregate({
         _sum: {
           promptTokens: true,
@@ -57,7 +68,6 @@ export async function GET() {
         },
         _count: true,
       }),
-      // Last 24 hours of token usage
       (prisma as any).tokenUsage.aggregate({
         _sum: {
           promptTokens: true,
@@ -73,18 +83,67 @@ export async function GET() {
       }),
     ]);
 
+    let activeUsers = 0;
+    let pendingUsers = 0;
+    let suspendedUsers = 0;
+    let adminUsers = 0;
+    const tiers: Record<string, number> = {
+      starter: 0,
+      pro: 0,
+      firm: 0,
+      enterprise: 0,
+    };
+    let estimatedMrr = 0;
+    let activePaidSubscribers = 0;
+
+    for (const p of profiles) {
+      if (p.status === 'active') activeUsers++;
+      else if (p.status === 'pending') pendingUsers++;
+      else if (p.status === 'suspended') suspendedUsers++;
+
+      if (p.role === 'admin') adminUsers++;
+
+      const t = (p.tier || 'starter').toLowerCase();
+      tiers[t] = (tiers[t] || 0) + 1;
+
+      if (p.status === 'active' && TIER_MONTHLY_PRICING[t] > 0) {
+        estimatedMrr += TIER_MONTHLY_PRICING[t];
+        activePaidSubscribers++;
+      }
+    }
+
+    const allTimePrompt = tokenAggregation._sum.promptTokens || 0;
+    const allTimeCompletion = tokenAggregation._sum.completionTokens || 0;
+    const estimatedAiComputeCost =
+      (allTimePrompt / 1_000_000) * 0.15 +
+      (allTimeCompletion / 1_000_000) * 0.6;
+
     return NextResponse.json({
       users: {
-        total: totalUsers,
+        total: profiles.length,
         active: activeUsers,
         pending: pendingUsers,
+        suspended: suspendedUsers,
+        admins: adminUsers,
+      },
+      tiers,
+      revenue: {
+        estimatedMrr: Number(estimatedMrr.toFixed(2)),
+        estimatedArr: Number((estimatedMrr * 12).toFixed(2)),
+        activePaidSubscribers,
+        estimatedAiComputeCost: Number(estimatedAiComputeCost.toFixed(4)),
       },
       conversations: totalConversations,
       messages: totalMessages,
+      documents: {
+        total: totalDocuments,
+        pdfCount: pdfDocuments,
+        docxCount: docxDocuments,
+      },
       tokens: {
         allTime: {
-          prompt: tokenAggregation._sum.promptTokens || 0,
-          completion: tokenAggregation._sum.completionTokens || 0,
+          prompt: allTimePrompt,
+          completion: allTimeCompletion,
           total: tokenAggregation._sum.totalTokens || 0,
           requests: tokenAggregation._count,
         },

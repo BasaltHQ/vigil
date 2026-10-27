@@ -223,6 +223,8 @@ export default function SettingsPage() {
       latex = latex.replace(/\[TITLE\]/g, "Document Layout Preview");
       const sampleSectionsLatex = key === "redline_comparison"
         ? "\\section*{1. Mutual Indemnification \\hfill {\\small\\textcolor{RedlineDel}{[CRITICAL --- PRIMARY POSITION]}}}\nEach Party shall \\textcolor{RedlineDel}{\\sout{solely and unconditionally}} \\textcolor{RedlineIns}{\\uline{mutually}} indemnify, defend, and hold harmless the other Party from third-party claims \\textcolor{RedlineIns}{\\uline{proximately caused by gross negligence or willful misconduct}}.\\\\[0.6em]\n\\noindent\\textbf{\\textcolor{RationaleGray}{[Counsel Note]:}} {\\itshape\\textcolor{RationaleGray}{Converted unilateral indemnity to mutual protection per Firm Playbook Rule 1.}}"
+        : key === "diligence_report"
+        ? "\\section*{1. Executive Risk Summary \\hfill {\\small\\textcolor{RiskCrit}{[OVERALL SCORE: 78/100 --- HIGH RISK]}}}\nTarget's top 3 enterprise customer agreements contain Change-of-Control termination triggers representing \\textbf{\\$18.5M ARR}.\n\n\\section*{2. Remediation & Escrow Matrix}\nRequire written customer consents prior to Closing and establish a \\textbf{\\$5.0M Special Indemnity Escrow} for 24 months."
         : "\\section*{1. Sample Section}\nThis is a demonstration of how the layout structure handles standard paragraphs and typography.\n\n\\section*{2. Formatting Test}\nAnother section to test spacing.";
       latex = latex.replace(/\[SECTIONS_CONTENT\]/g, sampleSectionsLatex);
       latex = latex.replace(/\[SIGNATURES_CONTENT\]/g, "\\noindent\n\\textbf{\\textcolor{BrandPrimary}{SAMPLE ENTITY}}\\\\[1em]\n\\hrulefill \\\\\n\\textbf{John Doe}, CEO\n");
@@ -328,8 +330,8 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-300 uppercase tracking-widest">{profile.role}</p>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-1 tracking-wider">ACCOUNT ROLE</div>
-              <p className="text-sm text-gray-300 uppercase tracking-widest">{profile.role}</p>
+              <div className="text-xs text-gray-500 mb-1 tracking-wider">SUBSCRIPTION TIER</div>
+              <p className="text-sm text-red-400 font-mono font-bold uppercase tracking-widest">{profile.tier || "starter"}</p>
             </div>
             <div>
               <div className="text-xs text-gray-500 mb-1 tracking-wider">WALLET ADDRESS (ID)</div>
@@ -583,9 +585,38 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-gray-400 mb-6">
+              <p className="text-sm text-gray-400 mb-4">
                 Define the rules of engagement for your autonomous agents. Paste your firm's standard fallback clauses, negotiation deal-breakers, and risk tolerance matrices here. The AI swarm will strict-enforce these parameters during document redlining and analysis.
               </p>
+
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 mr-1">
+                  AMLAW 10 PRESET PLAYBOOKS:
+                </span>
+                {[
+                  {
+                    label: "Pro-Buyer M&A Standard",
+                    text: "1. INDEMNIFICATION: Require uncapped indemnification for Fundamental Representations (Title, Organization, Authority, Taxes, IP Ownership) and Fraud. General rep survival minimum 24 months with a 0.5% tipping basket (not deductible).\n2. LIMITATION OF LIABILITY: Reject any aggregate cap below 20% of Purchase Price for general reps; IP and Data Breach claims must carry a 100% Purchase Price super-cap.\n3. MATERIAL ADVERSE EFFECT (MAE): Exclude general market conditions unless disproportionately affecting Target.\n4. GOVERNING LAW: Mandatory Delaware law with exclusive venue in the Delaware Court of Chancery.",
+                  },
+                  {
+                    label: "Enterprise SaaS Customer Protection",
+                    text: "1. IP & DATA INDEMNITY: Vendor must unconditionally defend and indemnify Customer against all third-party IP infringement and data breach claims without cap.\n2. SUPER-CAP ON LIABILITY: Mutual 24-month fees cap for general claims; 3x fees or $5M minimum super-cap for confidentiality, security, and gross negligence.\n3. UPTIME & SLA: Minimum 99.9% monthly uptime commitment with service credits starting at 10% and termination right if uptime drops below 99.0% in any 2 consecutive months.\n4. AUTO-RENEWAL & PRICE CAPS: Reject unilateral price increases above 3% or CPI upon renewal.",
+                  },
+                  {
+                    label: "Venture Series A (NVCA Balanced)",
+                    text: "1. LIQUIDATION PREFERENCE: Maximum 1x Non-Participating Preferred liquidation preference.\n2. ANTI-DILUTION: Broad-based weighted average anti-dilution only; strictly reject full-ratchet anti-dilution.\n3. OPTION POOL: Post-money ESOP top-up not to exceed 10% fully diluted.\n4. FOUNDER VESTING: 4-year vesting with 1-year cliff and 100% double-trigger acceleration upon Change of Control.",
+                  },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => setPlaybookText(preset.text)}
+                    className="px-3 py-1 rounded-full bg-white/5 hover:bg-red-900/30 border border-white/10 hover:border-red-500/40 text-xs font-mono text-gray-300 hover:text-white transition-all"
+                  >
+                    + Load {preset.label}
+                  </button>
+                ))}
+              </div>
               
               <div className="relative">
                 <div className="absolute top-0 right-0 px-4 py-2 flex gap-2 border-b border-l border-white/10 bg-[#050505] rounded-bl-lg opacity-50 z-10 pointer-events-none">
