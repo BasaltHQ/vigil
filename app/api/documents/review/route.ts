@@ -122,8 +122,8 @@ async function syncReviewToDatabase(session: ReviewSessionRecord) {
         data: {
           metadata: {
             ...prevMeta,
-            reviewSession: session,
-          },
+            reviewSession: JSON.parse(JSON.stringify(session)),
+          } as any,
         },
       });
     }
