@@ -37,7 +37,7 @@ for (const [name, t] of [
 console.log(`[Vigil] Pre-computed ${Object.keys(correctSchemas).length} tool schemas`);
 
 // Pre-load agent instruction files
-const instructionsDir = process.cwd() + '/lib/agents/instructions';
+const instructionsDir = path.join(process.cwd(), 'lib', 'agents', 'instructions');
 
 function loadAgentInstructions(agentName: string, swarmId: string): string {
   const safeAgentName = agentName || 'Keyes';
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
           create: {
             id: String(conversation_id),
             title: getMessageText(lastUserMsg).slice(0, 80) || `Session ${new Date().toLocaleString()}`,
-            userId: userId !== 'anonymous' ? userId : null,
+            userId: userId !== 'anonymous' ? userId : undefined,
           },
         });
         await prisma.message.create({
